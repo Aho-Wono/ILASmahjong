@@ -19,11 +19,3 @@ def ripai(hai_li):
 			else: break
 
 	return sorted(suhai_li) + jihai_li_new
-
-#↓こんな感じで牌を定義してほしい
-haipai = ["m1", "m9", "p1", "p9", "s1", "s9", "ton", "nan", "sha", "pei", "haku", "hatu", "chun"]
-random.shuffle(haipai)
-print("理牌前：", haipai)
-
-#理牌関数に通した後
-print("理牌後：", ripai(haipai))
