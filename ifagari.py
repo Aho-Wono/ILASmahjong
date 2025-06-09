@@ -4,8 +4,8 @@ import ripai
 ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
 
 # デバッグ用変数
-debug = False
-debug_2 = False
+debug = True
+debug_2 = True
 
 # "m","p","s","j"を引数として対象の種類だけを返してくる関数
 def tehai_split(tehai=None, kind=None): 
@@ -77,7 +77,7 @@ def ifagari(tehai=None):
                     kotu_del_li = []
                     for i in range(len(kotu_koho)):
                         kotu_del_li.extend(list(itertools.combinations(kotu_koho, i+1)))
-                    printd(kotu_del_li)
+                    printd(f"kot_del_li: {kotu_del_li}")
 
                     only_shuntu_li = []
                     only_shuntu_li.append(suhai_li)
@@ -151,11 +151,12 @@ if debug_2:
     tehai = 'm1 m1 m1 p2 p3 p4 s5 s6 s7 ton ton ton pei pei'.split()
     tehai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun chun".split()
     tehai = "m1 m1 s2 s2 s3 s3 s4 s4 s5 s5 ton ton sha sha".split()
+    tehai = 'm1 m2 m3 s2 s3 s4 s4 s4 s5 s5 s6 s6 pei pei'.split()
 
     print(ifagari(tehai=tehai))
 
 
-    whiling = True
+    whiling = False
 
     count = 0
     while whiling:
