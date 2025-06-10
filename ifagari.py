@@ -1,11 +1,9 @@
 import random
 import itertools
 import ripai
+from debug import printd
 ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
 
-# デバッグ用変数
-debug = True
-debug_2 = True
 
 # "m","p","s","j"を引数として対象の種類だけを返してくる関数
 def tehai_split(tehai=None, kind=None): 
@@ -20,8 +18,6 @@ def tehai_split(tehai=None, kind=None):
     
     return splited_tehai
 
-def printd(text):
-    if debug: print(text)
 
 def ifagari(tehai=None):
     agari = False
@@ -144,8 +140,9 @@ def ifagari(tehai=None):
     return agari
 
 
+
 #以下、デバッグ用
-if debug_2:
+if False:
         
     tehai = random.choices(ALL_HAI, k=14)
     tehai = 'm1 m1 m1 p2 p3 p4 s5 s6 s7 ton ton ton pei pei'.split()
@@ -153,7 +150,7 @@ if debug_2:
     tehai = "m1 m1 s2 s2 s3 s3 s4 s4 s5 s5 ton ton sha sha".split()
     tehai = 'm1 m2 m3 s2 s3 s4 s4 s4 s5 s5 s6 s6 pei pei'.split()
 
-    print(ifagari(tehai=tehai))
+    printd(ifagari(tehai=tehai))
 
 
     whiling = False
@@ -163,11 +160,11 @@ if debug_2:
         count += 1
         tehai = random.choices(ALL_HAI, k=14)
         
-        if count%10000 == 0: print(count)
+        if count%10000 == 0: printd(count)
 
         if ifagari(tehai=tehai):
-            print(f"\n和了 count={count}")
-            print(tehai)
+            printd(f"\n和了 count={count}")
+            printd(tehai)
             break
 
 
