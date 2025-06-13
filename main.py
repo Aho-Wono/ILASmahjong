@@ -4,10 +4,9 @@ import ripai
 import random
 from debug import printd
 from debug import printc
-
+import yaku
 
 ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
-
 
 
 # とりあえず1局まるまる遊べるようなものを作ります
@@ -55,34 +54,53 @@ for i in range(4):
 printd("dora:", dora_omote)
 printd("uradora:", dora_ura)
 
+# 四槓流れ・ドラめくり用に場において何回槓されたかのカウントを作る
+kan_count = 0
+
 # ツモってゆく
 whoturn = info.read()["oya"] # 誰が親かで最初にツモるひとを判定する (0~4)
 printd("oya: ", whoturn)
 
 while True: # 1ループ1ツモ
     Player = players[whoturn]
+
+
+
     tumohai = random.choice(YAMA)
     YAMA.remove(tumo)
 
     # tumoの更新
     Player.tehai["tumo"] = tumohai
 
-    for デバッグ用 in [1111]:
-        Player.tehai["tumo"] = "m1"
-        Player.tehai["menzen"] = "m2 m2 m4 m4 m6 m6 m8 m8 s1 s1 s2 ton ton".split()
+    if True: # デバッグ用
+        Player.tehai["menzen"] = "m1 m2 m2 m2 m6 m6 m8 m8 s1 s1 s2 ton ton".split()
+        Player.tehai["naki"] = [[["m1", 0], ["m1", 0], ["m1", 1]]]
+        Player.tehai["tumo"] = "m2"
 
 
     printc(players[whoturn])
+    
+    # あとで扱いやすいよう、ツモと手牌を一体化したリストを作成する
+    tehai_li = Player.tehai["menzen"] + [Player.tehai["tumo"]]
+
 
     # プレイヤーのtehaiが更新されたので、プレイヤー側に操作をお願いする
     # プレイヤーがその状況で可能な操作（何を切るか以外）を抜き出す（重労働）
     capable_sousa = {
+        "kiru": tehai_li,
         "tumo": [],
         "richi": [],
         "kan" : [],
     }
     
-    # ツモ和了可能かの判定
+    # ツモ和了可能かの判定（yaku.yakuが完成していないのでデバッグしてません！！！）
+    yaku_pattern_li = yaku.yaku(Player)
+    if len(yaku_pattern_li) >= 1: # 成立する役の組み合わせがあったら
+        for yaku_pattern in yaku_pattern_li: 
+            # 手役が役の中に存在すればツモ可能
+            for teyaku in yaku.teyaku_li():
+                if teyaku in yaku_pattern:
+                    capable_sousa["tumo"] == Player.tehai["tumo"]
     
     # 立直可能かの判定（つまり聴牌判定）
     menzen = True
@@ -91,7 +109,6 @@ while True: # 1ループ1ツモ
             menzen = False
     if menzen: # 鳴いていなければ聴牌判定に入る
         printd("menzenhantei")
-        tehai_li = Player.tehai["menzen"] + [Player.tehai["tumo"]]
         whichtotempai = []
         for kiruhai in tehai_li: 
             tehai_li_copied = tehai_li[:]
@@ -101,8 +118,18 @@ while True: # 1ループ1ツモ
 
         capable_sousa["richi"] = ripai.ripai(set(whichtotempai)) # 重複・順序を調整
     
-    # 槓ができるかどうかの判定
-    
+    # 槓ができるかどうかの判定（暗槓・加槓）
+    for hai in ALL_HAI:
+        if tehai_li.count(hai) == 4: # 暗槓判定
+            capable_sousa["kan"].append([hai, "ankan"])
+        for naki in Player.tehai["naki"]: # 加槓判定
+            if [i[0] for i in naki].count(hai) == 3 and (hai in tehai_li):
+                capable_sousa["kan"].append([hai, "kakan"])
+
+    # プレイヤーに選ばせる
+    sousa = input(f"操作を選んでください: {[i for i in list(capable_sousa)]}")
+    # あーつかれた　いったん休憩
+
     printd("capable_sousa:", capable_sousa)
 
     # 最後にプレイヤーのツモ牌をNoneにする
