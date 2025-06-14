@@ -1,7 +1,11 @@
 {
     "kyoku": "t1",
-    "hon": 4,
+    "hon": 5,
     "oya": 0,
-    "dora": ["m1"],
-    "uradora": ["p1"]
+    "dora": [
+        "m1"
+    ],
+    "uradora": [
+        "p1"
+    ]
 }
