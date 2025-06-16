@@ -14,7 +14,7 @@ import debug
 yaku_dic = {
     # 一飜役
     "立直":         {"teyaku": True, "hansu": 1},
-    "一発":         {"teyaku": True, "hansu": 1},
+    "一発":         {"teyaku": False, "hansu": 1},
     "門前清自摸和": {"teyaku": True, "hansu": 1},
     "断么九":       {"teyaku": True, "hansu": 1},
     "平和":         {"teyaku": True, "hansu": 1},
@@ -24,6 +24,8 @@ yaku_dic = {
     "槍槓":         {"teyaku": True, "hansu": 1},
     "海底摸月":     {"teyaku": True, "hansu": 1},
     "河底撈魚":     {"teyaku": True, "hansu": 1},
+    "ドラ":         {"teyaku": False, "hansu": 1},
+    "裏ドラ":       {"teyaku": False, "hansu": 1},
 
     # 二飜役
     "三色同順":     {"teyaku": True, "hansu": 2},
