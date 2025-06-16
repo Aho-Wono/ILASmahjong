@@ -1,8 +1,9 @@
 import itertools
 
 def ipeiko(naki, tumo, kawa, menzen_pattern):
-    flag = False
+    if not naki:
+        return False
     for item in itertools.combinations(menzen_pattern, 2):
         if item[0] == item[1]:
-            flag = False
-    return flag
+            return True
+    return False
