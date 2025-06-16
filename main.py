@@ -22,8 +22,8 @@ class PlayerInfo:
 players = [
     PlayerInfo(
         name= playername,
-        tehai= {"menzen": [],
-                "naki": [],
+        tehai= {"menzen": ["m1", "m2", "m3", "ton", "nan", "nan", "m9", "s1", "s2", "s3"],
+                "naki": [["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]],
                 "tumo": None
                 },
         kawa= []
