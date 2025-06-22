@@ -1,5 +1,10 @@
 def tanyao(menzen_pattern, naki, tumo, kawa):
-    tehaikari = menzen_pattern + naki
+    nakiseiri = []
+    for k in naki:
+        for l in range(len(k)):
+            k[l] = k[l][0]
+        nakiseiri.append(k)
+    tehaikari = menzen_pattern + nakiseiri
     tehai = []
     for i in tehaikari:
         tehai = tehai + i
