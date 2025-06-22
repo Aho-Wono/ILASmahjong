@@ -5,6 +5,8 @@ import debug
 import getdir
 import glob
 from pathlib import Path
+import importlib
+import mentsu_pattern
 
 # PlayerInfoのクラスが渡されたら、info.jsonなどの総合的な情報から成立する役を返す関数yaku(Player)を作ろうと思います
 # それが手役かどうかはmainの中で判定します
@@ -69,13 +71,13 @@ yaku_dic = {
     "地和":         {"teyaku": True, "hansu": 13},
 }
 
+
+
 def teyaku_li():
     tyk_li = []
     for yaku in list(yaku_dic):
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
-
-print(teyaku_li())
 
 def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     yaku_pattern_li = []
@@ -84,10 +86,26 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     naki = PlayerInfo.tehai["naki"]
     tumo = PlayerInfo.tehai["tumo"]
     kawa = PlayerInfo.kawa
+    menzen_pattern_li = mentsu_pattern(menzen)
 
-    dotpy_files = list(getdir.dir().glob('*.py')) 
-    yaku_filenames = [Path(pyfilepath).stem for pyfilepath in dotpy_files]
-    yaku
+    for menzen_pattern in menzen_pattern_li:
+        yaku_pattern = []
+
+        # それぞれの役モジュールをインポートして、成立する役のパターンを取得する
+        dotpy_files = list(getdir.dir().glob('*.py'))
+        for pyfilepath in dotpy_files:
+            filename = Path(pyfilepath).stem
+            if "y_" in filename: # ここでのファイル
+                module = importlib.import_module(filename)   # ← ここがポイント
+                fn = getattr(module, filename)
+                result = fn(menzen_pattern, naki, kawa, agarihai)
+                
+                if result != False:
+                    yaku_pattern.append(result)
+        
+        yaku_pattern_li.append(yaku_pattern)
+        
 
     debug.printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
+
