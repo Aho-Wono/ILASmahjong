@@ -1,4 +1,4 @@
-def sukantu(menzen_pattern, naki, tumo, kawa):
+def y_sukantu(menzen_pattern, naki, tumo, kawa):
     nakiseiri = []
     for k in naki:
         for l in range(len(k)):

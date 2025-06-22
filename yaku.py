@@ -2,6 +2,9 @@ import ifagari
 import ripai
 import info
 import debug
+import getdir
+import glob
+from pathlib import Path
 
 # PlayerInfoのクラスが渡されたら、info.jsonなどの総合的な情報から成立する役を返す関数yaku(Player)を作ろうと思います
 # それが手役かどうかはmainの中で判定します
@@ -82,7 +85,9 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     tumo = PlayerInfo.tehai["tumo"]
     kawa = PlayerInfo.kawa
 
-
+    dotpy_files = list(getdir.dir().glob('*.py')) 
+    yaku_filenames = [Path(pyfilepath).stem for pyfilepath in dotpy_files]
+    yaku
 
     debug.printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
