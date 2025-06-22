@@ -17,6 +17,12 @@ class PlayerInfo:
         self.tehai = tehai # 手牌の情報
         self.kawa = kawa # 河の情報
 
+    # そいつが現在立直しているかどうかの判定
+    def ifrichi(self):
+        return any(hai[1] in self.kawa) # 河に一つでも立直してるやつがあれば
+
+
+
 # 4人分のクラスオブジェクトを作成（playersというリストにData_A, Data_B, Data_C, Data_Dが入ってるイメージ）
 # 基本的に4人のクラスはこのリストの中のオブジェクトとしてまとめて扱う（例えばData_A=…のようにして4つの管理はしないという意味）
 players = [
@@ -27,7 +33,7 @@ players = [
                 "tumo": None
                 },
         kawa= []
-        ) for playername in ["田中", "佐藤", "藤原", "David"]
+        ) for playername in ["現役", "1浪", "2浪", "3浪"]
     ]
 
 # 山を作り、王牌や配牌を設定する→しようと思ってたけど毎回ランダムにツモればシャッフル山作る必要なくね？と思ったのでやっぱなし　河原ごめん！
@@ -65,74 +71,129 @@ while True: # 1ループ1ツモ
     Player = players[whoturn]
 
 
-
     tumohai = random.choice(YAMA)
     YAMA.remove(tumo)
 
-    # tumoの更新
-    Player.tehai["tumo"] = tumohai
 
-    if True: # デバッグ用
-        Player.tehai["menzen"] = "m1 m2 m2 m2 m6 m6 m8 m8 s1 s1 s2 ton ton".split()
-        Player.tehai["naki"] = [[["m1", 0], ["m1", 0], ["m1", 1]]]
-        Player.tehai["tumo"] = "m2"
+    while True:
+            
+        # tumoの更新
+        Player.tehai["tumo"] = tumohai
 
-
-    printc(players[whoturn])
-    
-    # あとで扱いやすいよう、ツモと手牌を一体化したリストを作成する
-    tehai_li = Player.tehai["menzen"] + [Player.tehai["tumo"]]
+        if True: # デバッグ用
+            Player.tehai["menzen"] = "m1 m2 m2 m2 m6 m6 m8 m8 s1 s1 s2 ton ton".split()
+            Player.tehai["naki"] = [[["m1", 0], ["m1", 0], ["m1", 1]]]
+            Player.tehai["tumo"] = "m2"
 
 
-    # プレイヤーのtehaiが更新されたので、プレイヤー側に操作をお願いする
-    # プレイヤーがその状況で可能な操作（何を切るか以外）を抜き出す（重労働）
-    capable_sousa = {
-        "kiru": tehai_li,
-        "tumo": [],
-        "richi": [],
-        "kan" : [],
-    }
-    
-    # ツモ和了可能かの判定（yaku.yakuが完成していないのでデバッグしてません！！！）
-    yaku_pattern_li = yaku.yaku(Player)
-    if len(yaku_pattern_li) >= 1: # 成立する役の組み合わせがあったら
-        for yaku_pattern in yaku_pattern_li: 
-            # 手役が役の中に存在すればツモ可能
-            for teyaku in yaku.teyaku_li():
-                if teyaku in yaku_pattern:
-                    capable_sousa["tumo"] == Player.tehai["tumo"]
-    
-    # 立直可能かの判定（つまり聴牌判定）
-    menzen = True
-    for naki in Player.tehai["naki"]: # 暗槓対策
-        if naki[1] != whoturn:  
-            menzen = False
-    if menzen: # 鳴いていなければ聴牌判定に入る
-        printd("menzenhantei")
-        whichtotempai = []
-        for kiruhai in tehai_li: 
-            tehai_li_copied = tehai_li[:]
-            tehai_li_copied.remove(kiruhai)
-            for hai in ALL_HAI:
-                if ifagari.ifagari(tehai_li_copied + [hai]): whichtotempai.append(kiruhai)
+        printc(players[whoturn])
+        
+        # あとで扱いやすいよう、ツモと手牌を一体化したリストを作成する
+        tehai_li = Player.tehai["menzen"] + [Player.tehai["tumo"]]
 
-        capable_sousa["richi"] = ripai.ripai(set(whichtotempai)) # 重複・順序を調整
-    
-    # 槓ができるかどうかの判定（暗槓・加槓）
-    for hai in ALL_HAI:
-        if tehai_li.count(hai) == 4: # 暗槓判定
-            capable_sousa["kan"].append([hai, "ankan"])
-        for naki in Player.tehai["naki"]: # 加槓判定
-            if [i[0] for i in naki].count(hai) == 3 and (hai in tehai_li):
-                capable_sousa["kan"].append([hai, "kakan"])
 
-    # プレイヤーに選ばせる
-    sousa = input(f"操作を選んでください: {[i for i in list(capable_sousa)]}")
-    # あーつかれた　いったん休憩
+        # プレイヤーのtehaiが更新されたので、プレイヤー側に操作をお願いする
+        # プレイヤーがその状況で可能な操作（何を切るか以外）を抜き出す（重労働）
+        capable_sousa = {
+            "kiru": tehai_li,
+            "tumo": [],
+            "richi": [],
+            "kan" : [],
+        }
+        
+        # ツモ和了可能かの判定（yaku.yakuが完成していないのでデバッグしてません！！！）
+        yaku_pattern_li = yaku.yaku(Player)
+        if len(yaku_pattern_li) >= 1: # 成立する役の組み合わせがあったら
+            for yaku_pattern in yaku_pattern_li: 
+                # 手役が役の中に存在すればツモ可能
+                for teyaku in yaku.teyaku_li():
+                    if teyaku in yaku_pattern:
+                        capable_sousa["tumo"] == Player.tehai["tumo"]
+        
+        # 立直可能かの判定（つまり聴牌判定）
+        menzen = True
+        for naki in Player.tehai["naki"]: # 暗槓対策
+            if naki[1] != whoturn:  
+                menzen = False
+        if menzen: # 鳴いていなければ聴牌判定に入る
+            printd("menzenhantei")
+            whichtotempai = []
+            for kiruhai in tehai_li: 
+                tehai_li_copied = tehai_li[:]
+                tehai_li_copied.remove(kiruhai)
+                for hai in ALL_HAI:
+                    if ifagari.ifagari(tehai_li_copied + [hai]): whichtotempai.append(kiruhai)
 
-    printd("capable_sousa:", capable_sousa)
+            capable_sousa["richi"] = ripai.ripai(set(whichtotempai)) # 重複・順序を調整
+        
+        # 槓ができるかどうかの判定（暗槓・加槓）
+        # 立直していれば待ちが変わってしまう暗槓はできないのであとあと修正が必要！！！！そしてまだ修正してない！！！！WHOOOO
+        for hai in ALL_HAI:
+            if tehai_li.count(hai) == 4: # 暗槓判定
+                capable_sousa["kan"].append([hai, "ankan"])
+            for naki in Player.tehai["naki"]: # 加槓判定
+                if [i[0] for i in naki].count(hai) == 3 and (hai in tehai_li):
+                    capable_sousa["kan"].append([hai, "kakan"])
+
+        # プレイヤーに選ばせる
+        sousa = input(f"操作を選んでください: {[i for i in list(capable_sousa)]}")
+        
+        if sousa != "kiru":
+            continue ##あとあと作成～～～～
+        else: 
+            printd("牌を切ります")
+            break # 何かしら切る場合はループを解除
 
     # 最後にプレイヤーのツモ牌をNoneにする
     Player.tehai["tumo"] = None
+
+    # ここでとりあえず一人のプレイヤーのターンは確定で終わり
+    # ここからは切った牌に対する他プレイヤーの選択肢を提示していく
+
+    # 槍槓・暗槓に対してロンができるかどうかの判定を行う
+    # めんどくさいからまだつくらない
+
+
+
+    # 一人一人のプレイヤーに対して、できる操作を調べていく
+    tacha_capable_sousa_li = []
+    for i_op, OtherPlayer in enumerate(players):
+
+
+        tacha_capable_sousa = {
+            "pon": [],
+            "chi": [],
+            "kan" : [],
+            "ron": []
+        }
+
+        if i_op == whoturn: # 自分自身の捨て牌にはアクションできませんボケ
+            tacha_capable_sousa_li.append(tacha_capable_sousa)
+        else:
+            # ロン判定
+
+
+            if OtherPlayer.ifrichi(): # 立直していればロン判定のみで切り上げる
+                tacha_capable_sousa_li.append(tacha_capable_sousa)
+            else:
+                # チー判定
+                print()
+
+                # ポン判定
+    
+    # 操作をリストアップしたら、優先度の判定をしていく
+    #
+    #              うんち
+    #
+
+    # 行われた操作によっては次のwhoturnが変わるぜ
+    
+
+
+    # 誰もなんにもしなかった場合、whoturnを次の人にする
+    whoturn = (whoturn + 1) % 4
+
+
+
 
     break
