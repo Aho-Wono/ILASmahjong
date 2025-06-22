@@ -9,6 +9,8 @@ def sansyokudouko(menzen_pattern, naki, tumo, kawa):
     kazukensa = []
     hantei = 0
     for i in tehaikari:
+        if len(i) == 4:
+            i.remove(i[0])
         if len(i) == 3 and len(i[0]) == 2:
             if i[0] == i[1] and i[1] == i[2]:
                 kensa.append(i)
