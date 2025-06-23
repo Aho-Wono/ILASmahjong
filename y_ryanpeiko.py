@@ -1,6 +1,6 @@
 import itertools
 
-def y_ryanpeiko(naki, tumo, kawa, menzen_pattern):
+def y_ryanpeiko(menzen_pattern, naki, kawa, tumo, agarihai):
     if not naki:
         return False
     if len(menzen_pattern) != 4:
