@@ -82,6 +82,7 @@ def teyaku_li():
 def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     yaku_pattern_li = []
     
+    playerid = PlayerInfo.playerid
     menzen = PlayerInfo.tehai["menzen"]
     naki = PlayerInfo.tehai["naki"]
     tumo = PlayerInfo.tehai["tumo"]

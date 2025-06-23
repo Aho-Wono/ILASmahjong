@@ -27,13 +27,13 @@ class PlayerInfo:
 # 基本的に4人のクラスはこのリストの中のオブジェクトとしてまとめて扱う（例えばData_A=…のようにして4つの管理はしないという意味）
 players = [
     PlayerInfo(
-        name= playername,
+        playid= playerid,
         tehai= {"menzen": ["m1", "m2", "m3", "ton", "nan", "nan", "m9", "s1", "s2", "s3"],
                 "naki": [["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]],
                 "tumo": None
                 },
         kawa= []
-        ) for playername in ["現役", "1浪", "2浪", "3浪"]
+        ) for playerid in [0, 1, 2, 3]
     ]
 
 # 山を作り、王牌や配牌を設定する→しようと思ってたけど毎回ランダムにツモればシャッフル山作る必要なくね？と思ったのでやっぱなし　河原ごめん！
