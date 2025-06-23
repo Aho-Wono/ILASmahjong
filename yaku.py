@@ -88,8 +88,14 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     kawa = PlayerInfo.kawa
     menzen_pattern_li = mentsu_pattern(menzen)
 
+    # ありうる分割パターンぶんためす
     for menzen_pattern in menzen_pattern_li:
         yaku_pattern = []
+        
+        # 特別な役(ドラ、裏ドラ、槍槓をyaku_patternに追加する)
+        
+
+
 
         # それぞれの役モジュールをインポートして、成立する役のパターンを取得する
         dotpy_files = list(getdir.dir().glob('*.py'))
@@ -98,7 +104,7 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
             if "y_" in filename: # ここでのファイル
                 module = importlib.import_module(filename)   # ← ここがポイント
                 fn = getattr(module, filename)
-                result = fn(menzen_pattern, naki, kawa, agarihai)
+                result = fn(menzen_pattern, naki, kawa, tumo, agarihai) # 役の名前もしくはFalseが返ってくる
                 
                 if result != False:
                     yaku_pattern.append(result)
@@ -109,3 +115,11 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     debug.printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
 
+def agari_capable(PlayerInfo, agarihai):
+    teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
+
+    ag_cp = False
+    yaku_pattern_li = yaku(PlayerInfo, agarihai)
+    for yaku_pattern in yaku_pattern_li:
+        if any([(y in teyaku_li) for y in yaku_pattern]):
+            ag_cp = True
