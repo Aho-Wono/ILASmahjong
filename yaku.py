@@ -98,7 +98,7 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     kawa = PlayerInfo.kawa
 
     menzen_pattern_li = mentsu_pattern.mentsu_pattern(menzen + [agarihai])
-
+    for m in menzen_pattern_li: printd(m)
 
     # アガリ系じゃなかったら空のyaku_pattern_liを返す
     integrated_tehai = menzen[:] # いっかいキレイな形の手牌を作成してifagariに渡す
@@ -131,11 +131,17 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
             if "y_" in filename: # ここでのファイル
                 module = importlib.import_module(filename)   # ← ここがポイント
                 fn = getattr(module, filename)
-                result = fn(PlayerInfo= PlayerInfo, menzen_pattern= menzen_pattern, agarihai= agarihai) # 役の名前もしくはFalseが返ってくる
+                try:
+                    result = fn(PlayerInfo= PlayerInfo, menzen_pattern= menzen_pattern, agarihai= agarihai) # 役の名前もしくはFalseが返ってくる
+                    printd(f"about: {filename} -> {result}")
+                except Exception as e:
+                    result = False
+                    printd(f"about: {filename} -> ERROR: {e}")
                 
                 if result != False:
                     yaku_pattern.append(result)
-        
+        printd("yaku_pattern:", yaku_pattern)
+
         yaku_pattern_li.append(yaku_pattern)
         
 
@@ -149,11 +155,11 @@ class PlayerInfo:
         self.kawa = kawa # 河の情報
 TestPlayer = PlayerInfo(
     playerid= 0, # ← 0が親
-    tehai= {"menzen":  "m1 m1 m1 m2 m2 m2 m3 m3 m3 m4 m4 m4 ton".split(),
+    tehai= {"menzen":  "m2 m2 m3 m3 m4 m4 m7 m7 m7 m8 m8 m8 m9".split(),
             "naki": [],
             "tumo": "ton"
             },
     kawa= []
     )
 
-print(yaku(PlayerInfo= TestPlayer, agarihai="ton"))
+print(yaku(PlayerInfo= TestPlayer, agarihai="m9"))
