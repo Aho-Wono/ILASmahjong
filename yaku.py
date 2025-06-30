@@ -79,7 +79,6 @@ def teyaku_li():
     return tyk_li
 
 def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
-    yaku_debug_mode = False
     if yaku_debug_mode:
         debug.printd(*args, sep=sep, end=end, file=file, flush=flush)
 
@@ -110,9 +109,9 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     for n in naki:
         if len(n) == 3: # カン以外の場合
             for nn in n:
-                integrated_tehai.append(n[0])
+                integrated_tehai.append(nn[0])
         elif len(n) == 4: # カンの場合
-            integrated_tehai.extend([n[0], n[0], n[0]])
+            integrated_tehai.extend([n[0][0], n[0][0], n[0][0]])
     integrated_tehai.append(agarihai)
     yaku_printd("integrated: ", integrated_tehai)
     if not ifagari.ifagari(integrated_tehai):
@@ -170,12 +169,15 @@ TestPlayer = PlayerInfo(
     )
 
 debug_patterns = [
-    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split(), [], None, "m9"],     # パターン: 1
-    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 ton ton ton".split(), [], None, "m9"],  # パターン: 2
-    ["m1 m1 m1 m2 m3 p7 p8 p9 s9 s9 s9 sha sha".split(), [], "sha", "sha"], # パターン: 3
-    ["m1 m1 m1 m2 m3 m7 m8 m9 s7 s8 s9 p7 p8".split(), [], None, "p9"],     # パターン: 4
-    ["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],     # パターン: 5
+    #["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split(), [], None, "m9"],  
+    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1]]], None, "m9"], 
+    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]]], None, "m9"], 
+    #["m1 m1 m1 m2 m3 p7 p8 p9 s9 s9 s9 sha sha".split(), [], "sha", "sha"],
+    #["m1 m1 m1 m2 m3 m7 m8 m9 s7 s8 s9 p7 p8".split(), [], None, "p9"],    
+    #["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],    
 ]
+
+yaku_debug_mode = True
 
 for i, dp in enumerate(debug_patterns):
     TestPlayer.tehai["menzen"] = dp[0]

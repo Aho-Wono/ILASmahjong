@@ -76,11 +76,11 @@ while True: # 1ループ1ツモ
     # tumoの更新
     Player.tehai["tumo"] = tumohai
 
-    if False: # デバッグ用
-        Player.tehai["menzen"] = "m1 m2 m2 m2 m6 m6 m8 m8 s1 s1 s2 ton ton".split()
+    if True: # デバッグ用
+        Player.tehai["menzen"] = "p1 p2 p3 m6 m6 m8 m8 m8 pei pei".split()
         Player.tehai["naki"] = [[["m1", 0], ["m1", 0], ["m1", 1]]]
-        Player.tehai["tumo"] = "m2"
-
+        Player.tehai["tumo"] = "m6"
+        tumohai == "m6"
 
     printc(players[whoturn])
     
@@ -133,6 +133,7 @@ while True: # 1ループ1ツモ
                     capable_sousa["kan"].append([hai, "kakan"])
 
         # プレイヤーに選ばせる
+        print(capable_sousa)
         sousa = input(f"操作を選んでください: {[i for i in list(capable_sousa)]}")
         
         if sousa != "kiru":
