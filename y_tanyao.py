@@ -1,4 +1,5 @@
-def y_tanyao(menzen_pattern, naki, tumo, kawa):
+def y_tanyao(PlayerInfo, menzen_pattern, agarihai):
+    naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
         for l in range(len(k)):
@@ -12,4 +13,7 @@ def y_tanyao(menzen_pattern, naki, tumo, kawa):
     for j in tehai:
             if not j[1] in ("2" , "3" , "4" , "5" , "6" , "7" , "8"):
                 hantei = 0
-    return bool(hantei)
+    if hantei == 1:
+        return "断么九"
+    else:
+        return False
