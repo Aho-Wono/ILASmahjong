@@ -169,7 +169,7 @@ debug_patterns = [
     ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 ton ton ton".split(), [], None, "m9"],  # パターン: 2
     ["m1 m1 m1 m2 m3 p7 p8 p9 s9 s9 s9 sha sha".split(), [], "sha", "sha"], # パターン: 3
     ["m1 m1 m1 m2 m3 m7 m8 m9 s7 s8 s9 p7 p8".split(), [], None, "p9"],     # パターン: 4
-    ["m1 m1 m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7".split(), [], "m7", "m7"],     # パターン: 5
+    ["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],     # パターン: 5
 ]
 
 for i, dp in enumerate(debug_patterns):
