@@ -2,6 +2,7 @@ import ifagari
 import ripai
 import info
 from debug import printd
+from debug import printc
 import getdir
 import glob
 from pathlib import Path
@@ -156,11 +157,27 @@ class PlayerInfo:
         self.kawa = kawa # 河の情報
 TestPlayer = PlayerInfo(
     playerid= 0, # ← 0が親
-    tehai= {"menzen":  "m2 m2 m3 m3 m4 m4 s6 s6 s6 ton ton ton m8".split(),
+    tehai= {"menzen": [],
             "naki": [],
             "tumo": None
             },
     kawa= []
     )
 
-print(yaku(PlayerInfo= TestPlayer, agarihai="m8"))
+debug_patterns = [
+    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split(), [], None, "m9"],     # パターン: 1
+    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 ton ton ton".split(), [], None, "m9"],  # パターン: 2
+    ["m1 m1 m1 m2 m3 p7 p8 p9 s9 s9 s9 sha sha".split(), [], "sha", "sha"], # パターン: 3
+    ["m1 m1 m1 m2 m3 m7 m8 m9 s7 s8 s9 p7 p8".split(), [], None, "p9"],     # パターン: 4
+    ["m1 m1 m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7".split(), [], "m7", "m7"],     # パターン: 5
+]
+
+for i, dp in enumerate(debug_patterns):
+    TestPlayer.tehai["menzen"] = dp[0]
+    TestPlayer.tehai["naki"] = dp[1]
+    TestPlayer.tehai["tumo"] = dp[2]
+    ag = dp[3]
+
+    printd(f"[ {i+1} ]","="*100)
+
+    print(yaku(PlayerInfo= TestPlayer, agarihai=ag))
