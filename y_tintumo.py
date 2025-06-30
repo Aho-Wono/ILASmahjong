@@ -1,4 +1,5 @@
-def y_tintumo(menzen_pattern, naki, tumo, kawa):
+def y_tintumo(PlayerInfo, menzen_pattern, agarihai):
+    naki = PlayerInfo.tehai["naki"]
     if naki:
         return True
     for naki_i in naki:

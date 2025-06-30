@@ -1,8 +1,12 @@
 import itertools
 
-def y_ryanpeiko(menzen_pattern, naki, kawa, tumo, agarihai):
-    if not naki:
-        return False
+def y_ryanpeiko(PlayerInfo, menzen_pattern, agarihai):
+    naki = PlayerInfo.tehai["naki"]
+    for naki_i in naki:
+        flag = naki_i[0][1] #あんかんのとき鳴いたもののリストの誰のものか(2番目)がすべて一致するはずなので、違うときにFalse
+        for item in naki_i:
+            if item[1] != flag:
+                return False
     if len(menzen_pattern) != 4:
         return False
     for permu in itertools.permutations(menzen_pattern, 4):
