@@ -156,9 +156,9 @@ class PlayerInfo:
         self.kawa = kawa # 河の情報
 TestPlayer = PlayerInfo(
     playerid= 0, # ← 0が親
-    tehai= {"menzen":  "m2 m2 m3 m3 m4 m4 m6 m6 m6 ton ton ton m8".split(),
+    tehai= {"menzen":  "m2 m2 m3 m3 m4 m4 s6 s6 s6 ton ton ton m8".split(),
             "naki": [],
-            "tumo": "ton"
+            "tumo": None
             },
     kawa= []
     )
