@@ -1,4 +1,5 @@
-def y_sukantu(menzen_pattern, naki, tumo, kawa):
+def y_sukantu(PlayerInfo, menzen_pattern, agarihai):
+    naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
         for l in range(len(k)):
@@ -10,6 +11,6 @@ def y_sukantu(menzen_pattern, naki, tumo, kawa):
         if len(i) == 4:
             hantei += 1
     if hantei == 4:
-        return True
+        return "四槓子"
     else:
         return False

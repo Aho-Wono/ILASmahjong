@@ -1,4 +1,5 @@
-def y_sansyokudouko(menzen_pattern, naki, tumo, kawa):
+def y_sansyokudouko(PlayerInfo, menzen_pattern, agarihai):
+    naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
         for l in range(len(k)):
@@ -25,6 +26,6 @@ def y_sansyokudouko(menzen_pattern, naki, tumo, kawa):
             if kazu == kazukensa[0]:
                 hantei += 1
         if hantei >= 9:
-            return True
+            return "三色同刻"
         else:
             return False

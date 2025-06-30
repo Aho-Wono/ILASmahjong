@@ -1,4 +1,5 @@
-def y_toitoiho(menzen_pattern, naki, tumo, kawa):
+def y_toitoiho(PlayerInfo, menzen_pattern, agarihai):
+    naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
         for l in range(len(k)):
@@ -13,6 +14,6 @@ def y_toitoiho(menzen_pattern, naki, tumo, kawa):
             if i[0] ==i[1] and i[1] == i[2]:
                 hantei += 1
     if hantei >= 4:
-        return True
+        return "対々和"
     else:
         return False
