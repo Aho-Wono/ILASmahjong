@@ -1,7 +1,7 @@
 import ifagari
 import ripai
 import info
-import debug
+from debug import printd
 import getdir
 import glob
 from pathlib import Path
@@ -96,7 +96,9 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     naki = PlayerInfo.tehai["naki"]
     tumo = PlayerInfo.tehai["tumo"]
     kawa = PlayerInfo.kawa
-    menzen_pattern_li = mentsu_pattern.mentsu_pattern(menzen)
+
+    menzen_pattern_li = mentsu_pattern.mentsu_pattern(menzen + [agarihai])
+
 
     # アガリ系じゃなかったら空のyaku_pattern_liを返す
     integrated_tehai = menzen[:] # いっかいキレイな形の手牌を作成してifagariに渡す
@@ -106,12 +108,15 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
                 integrated_tehai.append(n[0])
         elif len(n) == 4: # カンの場合
             integrated_tehai.extend([n[0], n[0], n[0]])
+    integrated_tehai.append(agarihai)
+    printd("integrated: ", integrated_tehai)
     if not ifagari.ifagari(integrated_tehai):
         return yaku_pattern_li
-
+    else: printd("ifagari is valuable.")
 
     # ありうる分割パターンぶんためす
     for menzen_pattern in menzen_pattern_li:
+        printd("=== menzen_pattern ", menzen_pattern)
         yaku_pattern = []
         
         # 特別な役(ドラ、裏ドラ、槍槓をyaku_patternに追加する)
@@ -126,7 +131,7 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
             if "y_" in filename: # ここでのファイル
                 module = importlib.import_module(filename)   # ← ここがポイント
                 fn = getattr(module, filename)
-                result = fn(PlayerInfo, menzen_pattern, agarihai) # 役の名前もしくはFalseが返ってくる
+                result = fn(PlayerInfo= PlayerInfo, menzen_pattern= menzen_pattern, agarihai= agarihai) # 役の名前もしくはFalseが返ってくる
                 
                 if result != False:
                     yaku_pattern.append(result)
@@ -134,7 +139,7 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
         yaku_pattern_li.append(yaku_pattern)
         
 
-    debug.printd(f"yaku_pattern_li: {yaku_pattern_li}")
+    printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
 
 class PlayerInfo:
@@ -144,7 +149,7 @@ class PlayerInfo:
         self.kawa = kawa # 河の情報
 TestPlayer = PlayerInfo(
     playerid= 0, # ← 0が親
-    tehai= {"menzen":  ['ton', 'm7', 'p7', 'm5', 's9', 's7', 'chun', 'pei', 'm9', 's2', 'm9', 's7', 's9'],
+    tehai= {"menzen":  "m1 m1 m1 m2 m2 m2 m3 m3 m3 m4 m4 m4 ton".split(),
             "naki": [],
             "tumo": "ton"
             },
