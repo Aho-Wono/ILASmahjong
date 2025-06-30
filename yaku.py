@@ -71,13 +71,22 @@ yaku_dic = {
     "地和":         {"teyaku": True, "hansu": 13},
 }
 
-
-
 def teyaku_li():
     tyk_li = []
     for yaku in list(yaku_dic):
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
+
+# PlayerInfoとアガリ牌を渡せば、それらの情報から和了系の役があるかどうかをTrue/Falseで返す
+def agari_capable(PlayerInfo, agarihai):
+    teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
+
+    ag_cp = False
+    yaku_pattern_li = yaku(PlayerInfo, agarihai)
+    for yaku_pattern in yaku_pattern_li:
+        if any([(y in teyaku_li) for y in yaku_pattern]):
+            ag_cp = True
+    return ag_cp
 
 def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     yaku_pattern_li = []
@@ -87,7 +96,19 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     naki = PlayerInfo.tehai["naki"]
     tumo = PlayerInfo.tehai["tumo"]
     kawa = PlayerInfo.kawa
-    menzen_pattern_li = mentsu_pattern(menzen)
+    menzen_pattern_li = mentsu_pattern.mentsu_pattern(menzen)
+
+    # アガリ系じゃなかったら空のyaku_pattern_liを返す
+    integrated_tehai = menzen[:] # いっかいキレイな形の手牌を作成してifagariに渡す
+    for n in naki:
+        if len(n) == 3: # カン以外の場合
+            for nn in n:
+                integrated_tehai.append(n[0])
+        elif len(n) == 4: # カンの場合
+            integrated_tehai.extend([n[0], n[0], n[0]])
+    if not ifagari.ifagari(integrated_tehai):
+        return yaku_pattern_li
+
 
     # ありうる分割パターンぶんためす
     for menzen_pattern in menzen_pattern_li:
@@ -116,11 +137,18 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     debug.printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
 
-def agari_capable(PlayerInfo, agarihai):
-    teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
+class PlayerInfo:
+    def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
+        self.playerid = playerid # プレイヤー名 
+        self.tehai = tehai # 手牌の情報
+        self.kawa = kawa # 河の情報
+TestPlayer = PlayerInfo(
+    playerid= 0, # ← 0が親
+    tehai= {"menzen":  ['ton', 'm7', 'p7', 'm5', 's9', 's7', 'chun', 'pei', 'm9', 's2', 'm9', 's7', 's9'],
+            "naki": [],
+            "tumo": "ton"
+            },
+    kawa= []
+    )
 
-    ag_cp = False
-    yaku_pattern_li = yaku(PlayerInfo, agarihai)
-    for yaku_pattern in yaku_pattern_li:
-        if any([(y in teyaku_li) for y in yaku_pattern]):
-            ag_cp = True
+print(yaku(PlayerInfo= TestPlayer, agarihai="ton"))

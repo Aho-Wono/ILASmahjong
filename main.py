@@ -12,8 +12,8 @@ ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 
 # とりあえず1局まるまる遊べるようなものを作ります
 # プレイヤーの状況を包括するクラスを作成
 class PlayerInfo:
-    def __init__(self, name, tehai, kawa):  # コンストラクタ (初期化メソッド)
-        self.name = name # プレイヤー名 
+    def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
+        self.playerid = playerid # プレイヤー名 
         self.tehai = tehai # 手牌の情報
         self.kawa = kawa # 河の情報
 
@@ -27,9 +27,9 @@ class PlayerInfo:
 # 基本的に4人のクラスはこのリストの中のオブジェクトとしてまとめて扱う（例えばData_A=…のようにして4つの管理はしないという意味）
 players = [
     PlayerInfo(
-        playid= playerid,
-        tehai= {"menzen": ["m1", "m2", "m3", "ton", "nan", "nan", "m9", "s1", "s2", "s3"],
-                "naki": [["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]],
+        playerid= playerid,
+        tehai= {"menzen": [],
+                "naki": [],
                 "tumo": None
                 },
         kawa= []
@@ -64,34 +64,30 @@ printd("uradora:", dora_ura)
 kan_count = 0
 
 # ツモってゆく
-whoturn = info.read()["oya"] # 誰が親かで最初にツモるひとを判定する (0~4)
-printd("oya: ", whoturn)
+whoturn = int(info.read()["kyoku"][1]) - 1 # 誰が親かで最初にツモるひとを判定する (0~4)
+
 
 while True: # 1ループ1ツモ
     Player = players[whoturn]
 
-
     tumohai = random.choice(YAMA)
-    YAMA.remove(tumo)
+    YAMA.remove(tumohai)
 
+    # tumoの更新
+    Player.tehai["tumo"] = tumohai
+
+    if False: # デバッグ用
+        Player.tehai["menzen"] = "m1 m2 m2 m2 m6 m6 m8 m8 s1 s1 s2 ton ton".split()
+        Player.tehai["naki"] = [[["m1", 0], ["m1", 0], ["m1", 1]]]
+        Player.tehai["tumo"] = "m2"
+
+
+    printc(players[whoturn])
+    
+    # あとで扱いやすいよう、ツモと手牌を一体化したリストを作成する
+    tehai_li = Player.tehai["menzen"] + [Player.tehai["tumo"]]
 
     while True:
-            
-        # tumoの更新
-        Player.tehai["tumo"] = tumohai
-
-        if True: # デバッグ用
-            Player.tehai["menzen"] = "m1 m2 m2 m2 m6 m6 m8 m8 s1 s1 s2 ton ton".split()
-            Player.tehai["naki"] = [[["m1", 0], ["m1", 0], ["m1", 1]]]
-            Player.tehai["tumo"] = "m2"
-
-
-        printc(players[whoturn])
-        
-        # あとで扱いやすいよう、ツモと手牌を一体化したリストを作成する
-        tehai_li = Player.tehai["menzen"] + [Player.tehai["tumo"]]
-
-
         # プレイヤーのtehaiが更新されたので、プレイヤー側に操作をお願いする
         # プレイヤーがその状況で可能な操作（何を切るか以外）を抜き出す（重労働）
         capable_sousa = {
@@ -102,7 +98,8 @@ while True: # 1ループ1ツモ
         }
         
         # ツモ和了可能かの判定（yaku.yakuが完成していないのでデバッグしてません！！！）
-        yaku_pattern_li = yaku.yaku(Player)
+        yaku_pattern_li = yaku.yaku(PlayerInfo=Player, agarihai=tumohai)
+        printd("yaku_pattern_li", yaku_pattern_li)
         if len(yaku_pattern_li) >= 1: # 成立する役の組み合わせがあったら
             for yaku_pattern in yaku_pattern_li: 
                 # 手役が役の中に存在すればツモ可能
