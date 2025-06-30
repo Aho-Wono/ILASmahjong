@@ -14,3 +14,5 @@ def y_menzentumo(PlayerInfo, menzen_pattern, agarihai):
     if result:
         return "門前清自摸和"
     else: return False
+
+    # 動作確認済 by 小野

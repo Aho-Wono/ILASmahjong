@@ -1,13 +1,13 @@
 import ifagari
 import ripai
 import info
-from debug import printd
-from debug import printc
+import debug
 import getdir
 import glob
 from pathlib import Path
 import importlib
 import mentsu_pattern
+import sys
 
 # PlayerInfoのクラスが渡されたら、info.jsonなどの総合的な情報から成立する役を返す関数yaku(Player)を作ろうと思います
 # それが手役かどうかはmainの中で判定します
@@ -78,6 +78,11 @@ def teyaku_li():
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
 
+def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
+    yaku_debug_mode = False
+    if yaku_debug_mode:
+        debug.printd(*args, sep=sep, end=end, file=file, flush=flush)
+
 # PlayerInfoとアガリ牌を渡せば、それらの情報から和了系の役があるかどうかをTrue/Falseで返す
 def agari_capable(PlayerInfo, agarihai):
     teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
@@ -109,16 +114,16 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
         elif len(n) == 4: # カンの場合
             integrated_tehai.extend([n[0], n[0], n[0]])
     integrated_tehai.append(agarihai)
-    printd("integrated: ", integrated_tehai)
+    yaku_printd("integrated: ", integrated_tehai)
     if not ifagari.ifagari(integrated_tehai):
         return yaku_pattern_li
-    else: printd("ifagari is valuable.")
+    else: yaku_printd("ifagari is valuable.")
 
     # ありうる分割パターンぶんためす
-    printd("try menzen_patterns;")
-    for m in menzen_pattern_li: printd(m)
+    yaku_printd("try menzen_patterns;")
+    for m in menzen_pattern_li: yaku_printd(m)
     for menzen_pattern in menzen_pattern_li:
-        printd("=== menzen_pattern ", menzen_pattern)
+        yaku_printd("=== menzen_pattern ", menzen_pattern)
         yaku_pattern = []
         
         # 特別な役(ドラ、裏ドラ、槍槓をyaku_patternに追加する)
@@ -135,19 +140,19 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
                 fn = getattr(module, filename)
                 try:
                     result = fn(PlayerInfo= PlayerInfo, menzen_pattern= menzen_pattern, agarihai= agarihai) # 役の名前もしくはFalseが返ってくる
-                    printd(f"about: {filename} -> {result}")
+                    yaku_printd(f"about: {filename} -> {result}")
                 except Exception as e:
                     result = False
-                    printd(f"about: {filename} -> ERROR: {e}")
+                    yaku_printd(f"about: {filename} -> ERROR: {e}")
                 
                 if result != False:
                     yaku_pattern.append(result)
-        printd("yaku_pattern:", yaku_pattern)
+        yaku_printd("yaku_pattern:", yaku_pattern)
 
         yaku_pattern_li.append(yaku_pattern)
         
 
-    printd(f"yaku_pattern_li: {yaku_pattern_li}")
+    yaku_printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
 
 class PlayerInfo:
@@ -178,6 +183,6 @@ for i, dp in enumerate(debug_patterns):
     TestPlayer.tehai["tumo"] = dp[2]
     ag = dp[3]
 
-    printd(f"[ {i+1} ]","="*100)
+    yaku_printd(f"[ {i+1} ]","="*100)
 
-    print(yaku(PlayerInfo= TestPlayer, agarihai=ag))
+    yaku_printd(yaku(PlayerInfo= TestPlayer, agarihai=ag))
