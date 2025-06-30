@@ -7,4 +7,4 @@ def y_tintumo(PlayerInfo, menzen_pattern, agarihai):
         for item in naki_i:
             if flag != item[1]:
                 return False
-    return True #あってるんか？→あってるよ
+    return "門前清自摸和" #あってるんか？→あってるよ→間違ってたよ
