@@ -131,7 +131,7 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
             if "y_" in filename: # ここでのファイル
                 module = importlib.import_module(filename)   # ← ここがポイント
                 fn = getattr(module, filename)
-                result = fn(PlayerInfo, menzen_pattern, agarihai) # 役の名前もしくはFalseが返ってくる
+                result = fn(PlayerInfo= PlayerInfo, menzen_pattern= menzen_pattern, agarihai= agarihai) # 役の名前もしくはFalseが返ってくる
                 
                 if result != False:
                     yaku_pattern.append(result)
