@@ -79,8 +79,8 @@ while True: # 1ループ1ツモ
     if True: # デバッグ用
         Player.tehai["menzen"] = "p1 p2 p3 m6 m6 m8 m8 m8 pei pei".split()
         Player.tehai["naki"] = [[["m1", 0], ["m1", 0], ["m1", 1]]]
-        Player.tehai["tumo"] = "m6"
-        tumohai == "m6"
+        Player.tehai["tumo"] = "m8"
+        tumohai = "m8"
 
     printc(players[whoturn])
     
@@ -97,15 +97,16 @@ while True: # 1ループ1ツモ
             "kan" : [],
         }
         
-        # ツモ和了可能かの判定（yaku.yakuが完成していないのでデバッグしてません！！！）
+        # ツモ和了可能かの判定
         yaku_pattern_li = yaku.yaku(PlayerInfo=Player, agarihai=tumohai)
-        printd("yaku_pattern_li", yaku_pattern_li)
+        printd("yaku_pattern_li:", yaku_pattern_li)
         if len(yaku_pattern_li) >= 1: # 成立する役の組み合わせがあったら
             for yaku_pattern in yaku_pattern_li: 
                 # 手役が役の中に存在すればツモ可能
                 for teyaku in yaku.teyaku_li():
+                    #print(teyaku, yaku_pattern)
                     if teyaku in yaku_pattern:
-                        capable_sousa["tumo"] == Player.tehai["tumo"]
+                        capable_sousa["tumo"] = Player.tehai["tumo"]
         
         # 立直可能かの判定（つまり聴牌判定）
         menzen = True

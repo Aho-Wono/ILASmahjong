@@ -78,9 +78,11 @@ def teyaku_li():
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
 
+yaku_debug_mode = False
+
 def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
     if yaku_debug_mode:
-        debug.printd(*args, sep=sep, end=end, file=file, flush=flush)
+        print(*args, sep=sep, end=end, file=file, flush=flush)
 
 # PlayerInfoとアガリ牌を渡せば、それらの情報から和了系の役があるかどうかをTrue/Falseで返す
 def agari_capable(PlayerInfo, agarihai):
@@ -94,6 +96,7 @@ def agari_capable(PlayerInfo, agarihai):
     return ag_cp
 
 def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
+    debug.printd("[yaku fn roaded]")
     yaku_pattern_li = []
     
     playerid = PlayerInfo.playerid
@@ -154,37 +157,39 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
     yaku_printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
 
-class PlayerInfo:
-    def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
-        self.playerid = playerid # プレイヤー名 
-        self.tehai = tehai # 手牌の情報
-        self.kawa = kawa # 河の情報
-TestPlayer = PlayerInfo(
-    playerid= 0, # ← 0が親
-    tehai= {"menzen": [],
-            "naki": [],
-            "tumo": None
-            },
-    kawa= []
-    )
+if False:
 
-debug_patterns = [
-    #["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split(), [], None, "m9"],  
-    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1]]], None, "m9"], 
-    ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]]], None, "m9"], 
-    #["m1 m1 m1 m2 m3 p7 p8 p9 s9 s9 s9 sha sha".split(), [], "sha", "sha"],
-    #["m1 m1 m1 m2 m3 m7 m8 m9 s7 s8 s9 p7 p8".split(), [], None, "p9"],    
-    #["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],    
-]
+    class PlayerInfo:
+        def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
+            self.playerid = playerid # プレイヤー名 
+            self.tehai = tehai # 手牌の情報
+            self.kawa = kawa # 河の情報
+    TestPlayer = PlayerInfo(
+        playerid= 0, # ← 0が親
+        tehai= {"menzen": [],
+                "naki": [],
+                "tumo": None
+                },
+        kawa= []
+        )
 
-yaku_debug_mode = True
+    debug_patterns = [
+        #["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split(), [], None, "m9"],  
+        ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1]]], None, "m9"], 
+        ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]]], None, "m9"], 
+        #["m1 m1 m1 m2 m3 p7 p8 p9 s9 s9 s9 sha sha".split(), [], "sha", "sha"],
+        #["m1 m1 m1 m2 m3 m7 m8 m9 s7 s8 s9 p7 p8".split(), [], None, "p9"],    
+        #["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],    
+    ]
 
-for i, dp in enumerate(debug_patterns):
-    TestPlayer.tehai["menzen"] = dp[0]
-    TestPlayer.tehai["naki"] = dp[1]
-    TestPlayer.tehai["tumo"] = dp[2]
-    ag = dp[3]
+    yaku_debug_mode = False
 
-    yaku_printd(f"[ {i+1} ]","="*100)
+    for i, dp in enumerate(debug_patterns):
+        TestPlayer.tehai["menzen"] = dp[0]
+        TestPlayer.tehai["naki"] = dp[1]
+        TestPlayer.tehai["tumo"] = dp[2]
+        ag = dp[3]
 
-    yaku_printd(yaku(PlayerInfo= TestPlayer, agarihai=ag))
+        yaku_printd(f"[ {i+1} ]","="*100)
+
+        yaku_printd(yaku(PlayerInfo= TestPlayer, agarihai=ag))
