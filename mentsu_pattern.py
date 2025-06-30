@@ -127,7 +127,10 @@ def mentsu_pattern(tehai=None):
                 if j_li.count(j) == 3:
                     j_kind.append(j)
             if j_hantei: 
-                mpsj_patterns[3] = [[jh, jh, jh] for jh in j_kind]
+                j_pattern = []
+                for jh in j_kind:
+                    j_pattern.append([jh, jh, jh])
+                mpsj_patterns[3].append(j_pattern)
                 mpsj_hantei += 1
                     
 
@@ -190,6 +193,7 @@ if False:
     tehai = "m1 m1 m1 m2 m2 m2 m3 m3 m3 ton ton s1 s2 s3".split()
     tehai = "m1 m1 m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m7".split()
     tehai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun chun".split()
+    tehai = 'm1 m1 m1 p2 p3 p4 s5 s6 s7 ton ton ton pei pei'.split()
 
     printd_ifagari(f"mentsu_patterns: {mentsu_pattern(tehai=tehai)}")
 
