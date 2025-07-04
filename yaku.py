@@ -33,10 +33,13 @@ yaku_dic = {
     "ドラ":         {"teyaku": False, "hansu": 1},
     "裏ドラ":       {"teyaku": False, "hansu": 1},
 
+        "混全帯么九_1":   {"teyaku": True, "hansu": 1},
+        "一気通貫_1":     {"teyaku": True, "hansu": 1},
+        "三色同順_1":     {"teyaku": True, "hansu": 1},
+
+        
+
     # 二飜役
-    "三色同順":     {"teyaku": True, "hansu": 2},
-    "一気通貫":     {"teyaku": True, "hansu": 2},
-    "混全帯么九":   {"teyaku": True, "hansu": 2},
     "七対子":       {"teyaku": True, "hansu": 2},
     "対々和":       {"teyaku": True, "hansu": 2},
     "三暗刻":       {"teyaku": True, "hansu": 2},
@@ -46,16 +49,28 @@ yaku_dic = {
     "小三元":       {"teyaku": True, "hansu": 2},
     "ダブル立直":   {"teyaku": True, "hansu": 2},
 
+    
+        "三色同順_2":     {"teyaku": True, "hansu": 2},
+        "一気通貫_2":     {"teyaku": True, "hansu": 2},
+        "混全帯么九_2":   {"teyaku": True, "hansu": 2},
+        
+        "純全帯么九_2":   {"teyaku": True, "hansu": 2},
+        "混一色_2":       {"teyaku": True, "hansu": 2},
+
     # 三飜役
-    "混一色":       {"teyaku": True, "hansu": 3},
-    "純全帯么九":   {"teyaku": True, "hansu": 3},
     "二盃口":       {"teyaku": True, "hansu": 3},
+    
+        "純全帯么九_3":   {"teyaku": True, "hansu": 3},
+        "混一色_3":       {"teyaku": True, "hansu": 3},
 
     # 四飜役
     "流し満貫":     {"teyaku": True, "hansu": 4},
 
+    # 五飜役
+        "清一色_5":       {"teyaku": True, "hansu": 5},
+        
     # 六飜役
-    "清一色":       {"teyaku": True, "hansu": 6},
+        "清一色_6":       {"teyaku": True, "hansu": 6},
 
     # 役満（13飜相当）
     "国士無双":     {"teyaku": True, "hansu": 13},
