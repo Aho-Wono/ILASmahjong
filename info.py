@@ -9,11 +9,11 @@ path = f"{dir()}/info.json"
 def write(data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
-    printd("[json written]")
+    #printd("[json written]")
 
 def read():
     # JSONファイルを読み込む
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)  
-        printd("[json readed]")
+        #printd("[json readed]")
         return data

@@ -85,18 +85,19 @@ def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
         print(*args, sep=sep, end=end, file=file, flush=flush)
 
 # PlayerInfoとアガリ牌を渡せば、それらの情報から和了系の役があるかどうかをTrue/Falseで返す
-def agari_capable(PlayerInfo, agarihai):
+def agari_capable(PlayerInfo, agarihai, ifrinshan= False, ifchankan= False):
     teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
 
     ag_cp = False
-    yaku_pattern_li = yaku(PlayerInfo, agarihai)
+    yaku_pattern_li = yaku(PlayerInfo, agarihai, ifrinshan= False, ifchankan= False)
     for yaku_pattern in yaku_pattern_li:
         if any([(y in teyaku_li) for y in yaku_pattern]):
             ag_cp = True
     return ag_cp
 
-def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
-    debug.printd("[yaku fn roaded]")
+# いろんなデータを渡して、役の組み合わせを出力する関数
+def yaku(PlayerInfo, agarihai, ifrinshan= False, ifchankan= False): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
+    #debug.printd("[yaku fn roaded]")
     yaku_pattern_li = []
     
     playerid = PlayerInfo.playerid
@@ -128,9 +129,10 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
         yaku_printd("=== menzen_pattern ", menzen_pattern)
         yaku_pattern = []
         
-        # 特別な役(ドラ、裏ドラ、槍槓をyaku_patternに追加する)
-        
-
+        # 特別な役(ドラ、裏ドラ、槍槓をyaku_patternに追加する)    
+        # 嶺上開花
+        if ifrinshan:
+            yaku_pattern.append("嶺上開花")
 
 
         # それぞれの役モジュールをインポートして、成立する役のパターンを取得する
@@ -156,6 +158,21 @@ def yaku(PlayerInfo, agarihai): # 引数は二つ、ロンでもツモでも槍�
 
     yaku_printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
+
+
+# 役の組み合わせからどれが最も役数が高くなるか言ってくれるやつ～
+def best_yaku(PlayerInfo, agarihai, ifrinshan= False, ifchankan= False):
+    yaku_pattern_li = yaku(PlayerInfo, agarihai, ifrinshan= False, ifchankan= False)
+    if len(yaku_pattern_li) == 0: return None # そもそも役がなければNoneを返す
+    max_yp = None
+    max_hansu = 0
+    for yp in yaku_pattern_li:
+        hansu = 0
+        for y in yp:
+            hansu += yaku_dic[y]["hansu"]
+        if hansu >= max_hansu: max_yp = yp
+    return max_yp
+    # 未作成！
 
 if False:
 
