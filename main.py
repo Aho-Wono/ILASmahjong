@@ -38,6 +38,7 @@ class PlayerInfo:
             return self.tehai["menzen"] + [self.tehai["tumo"]]
         else:
             return self.tehai["menzen"] 
+    
     def dbg(self):
         nakitx = ""
         for i in self.tehai["naki"]:
@@ -51,8 +52,9 @@ class PlayerInfo:
             else:    kawatx += i[0] + " "
  
         return f"{"_".join(ripai.ripai(self.tehai["menzen"]))} [{self.tehai["tumo"]}] {nakitx} \n {kawatx}"
-        
-
+    
+    def kiru(self, hai):
+        self.tehai["menzen"].remove(hai)
 
 # 4人分のクラスオブジェクトを作成（playersというリストにData_A, Data_B, Data_C, Data_Dが入ってるイメージ）
 # 基本的に4人のクラスはこのリストの中のオブジェクトとしてまとめて扱う（例えばData_A=…のようにして4つの管理はしないという意味）
@@ -67,6 +69,7 @@ players = [
         ) for playerid in [0, 1, 2, 3]
     ]
 
+# 開局時の初期化を行う
 # 山を作り、王牌や配牌を設定する→しようと思ってたけど毎回ランダムにツモればシャッフル山作る必要なくね？と思ったのでやっぱなし　河原ごめん！
 #haipai.haipai()
 YAMA = ALL_HAI*4 # すべての牌が入っている山を作成
@@ -77,6 +80,11 @@ for Player in players: # ←ここでPlayerが大文字なのはクラスの変�
         YAMA.remove(tumo)
         haipai.append(tumo)
     Player.tehai["menzen"] = haipai
+
+players[0].tehai["menzen"] = "m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split()
+players[1].tehai["menzen"] = "p1 p1 p1 p2 p3 p4 p5 p6 p7 p8 p9 p9 p9".split()
+players[2].tehai["menzen"] = "s1 s1 s1 s2 s3 s4 s5 s6 s7 s8 s9 s9 s9".split()
+players[3].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
 
 # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
 dora_omote = []
@@ -93,10 +101,7 @@ info.write(info.read() | {"dora_ura":dora_ura})
 printd("dora:", dora_omote)
 printd("uradora:", dora_ura)
 
-# 四槓流れ・ドラめくり用に場において何回槓されたかのカウントを作る
-kan_count = 0
-
-# ツモってゆく
+info.write(info.read() | {"kancount": 0})
 whoturn = int(info.read()["kyoku"][1]) - 1 # 誰が親かで最初にツモるひとを判定する (0~4)
 
 # その局でだれが何をアガるかの変数
@@ -117,11 +122,11 @@ while True:
         tacha_capable_sousa_li = []
         for i_op, OtherPlayer in enumerate(players):
             if i_op == whoturn: continue # 自分自身の捨て牌・カン牌にはアクションできませんボケ
-            
+
             # ロン判定
-            # 槍槓・国士の暗槓の要素について未作成！
+            # フリテン要素について未作成！
             if yaku.agari_capable(OtherPlayer, sousa_hai, sousa):
-                tacha_capable_sousa_li.append([whoturn, "ron"])
+                tacha_capable_sousa_li.append([i_op, "ron"])
             
             if OtherPlayer.ifrichi(): continue # 立直していればロン判定のみで切り上げる
             
@@ -144,15 +149,16 @@ while True:
             # カン判定
             if OtherPlayer.tehai["menzen"].count(sousa_hai) >= 3: # 面前手牌に3個以上該当牌があったらカンできる
                 tacha_capable_sousa_li.append([i_op, "daiminkan"])
-
         printd("tacha_capable_sousa_li:", tacha_capable_sousa_li)
+
 
         # 操作をリストアップしたら、優先度の判定をしていく
         # まずはロンが含まれてるか否かの判定をする
         
         tacha_capable_sousa_li.sort(key=lambda x: ["ron", "daiminkan", "pon", "chi"].index(x[1]))
 
-        tacha_ron_li = [tcsl[0] for tcsl in tacha_capable_sousa_li if tcsl[1] == "ron"]
+        
+        tacha_ron_li = [tcsl for tcsl in tacha_capable_sousa_li if tcsl[1] == "ron"]
         tacha_without_ron_li = [tcsl for tcsl in tacha_capable_sousa_li if tcsl[1] != "ron"] 
         printd("ron_li:", tacha_ron_li)
 
@@ -165,7 +171,7 @@ while True:
                 MovingPlayer = players[tcsl[0]]
                 agari_data.append({
                     "whoagari": tcsl[0],
-                    "woagarare": whoturn,
+                    "whoagarare": whoturn,
                     "tehai": MovingPlayer.tehai,
                     "yaku":  yaku.best_yaku(MovingPlayer, sousa_hai, sousa), })
 
@@ -181,18 +187,19 @@ while True:
 
                 # 承認された操作を実際に行う
                 if tcsl[1] == "pon": # ポンの場合
-                    for i in range(2): MovingPlayer.tehai["menzen"].remove(sousa_hai)
+                    for i in range(2): MovingPlayer.kiru(sousa_hai)
                     MovingPlayer.tehai["naki"].append([
                         [sousa_hai, tcsl[0]],
                         [sousa_hai, tcsl[0]],
                         [sousa_hai, whoturn],])
                 elif tcsl[1] == "daiminkan": # カンの場合
-                    for i in range(3): MovingPlayer.tehai["menzen"].remove(sousa_hai)
+                    for i in range(3): MovingPlayer.kiru(sousa_hai)
                     MovingPlayer.tehai["naki"].append([
                         [sousa_hai, tcsl[0]],
                         [sousa_hai, tcsl[0]],
                         [sousa_hai, tcsl[0]],
                         [sousa_hai, whoturn],])
+                    info.write(info.read() | {"kancount": info.read()["kancount"] + 1})
                 elif tcsl[1] == "chi": # チーの場合
                     # チー候補を見つける
                     chi_koho = []
@@ -210,7 +217,7 @@ while True:
                         chi_n = int(input(f"どれにしますか？（インデックスで）{chi_koho}"))
                         chi_sousa = chi_koho[chi_n]
                     
-                    for i in range(2): MovingPlayer.tehai["menzen"].remove(chi_sousa[i])
+                    for i in range(2): MovingPlayer.kiru(chi_sousa[i])
                     MovingPlayer.tehai["naki"].append([
                         [chi_sousa[0], tcsl[0]],
                         [chi_sousa[1], tcsl[0]],
@@ -287,7 +294,7 @@ while True:
 
     # 選択された操作に基づいて処理を行う
     if sousa == "ankan": # 暗槓
-        for i in range(4):  Player.tehai["menzen"].remove(sousa_hai)
+        for i in range(4):  Player.kiru(sousa_hai)
         Player.tehai["naki"].append([[sousa_hai, whoturn] for i in range(4)])
         
     elif sousa == "kakan": # 明槓   
@@ -297,19 +304,19 @@ while True:
                 Player.tehai["naki"][k_index].append([sousa_hai, whoturn])
 
     elif sousa == "kiru": # 普通に切るとき
-        Player.tehai["menzen"].remove(sousa_hai)
         if not ifmove: # 鳴き後に切るときは手牌に牌を追加しない 
             Player.tehai["menzen"].append(tumohai)
+        Player.kiru(sousa_hai)
         Player.kawa.append([sousa_hai, False])
     elif sousa == "richi": # 立直
-        Player.tehai["menzen"].remove(sousa_hai)
         Player.tehai["menzen"].append(tumohai)
+        Player.kiru(sousa_hai)
         Player.kawa.append([sousa_hai, True])
     
     elif sousa == "tumo": # ツモ和了
         agari_data.append({
             "whoagari": whoturn,
-            "woagarare": None,
+            "whoagarare": None,
             "tehai": Player.tehai,
             "yaku":  yaku.best_yaku(Player, tumohai, sousa), })
         break

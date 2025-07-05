@@ -181,7 +181,7 @@ def mentsu_pattern(tehai=None):
 
 
 #以下、デバッグ用
-if False:
+if True:
         
     tehai = random.choices(ALL_HAI, k=14)
     tehai = 'm1 m1 m1 p2 p3 p4 s5 s6 s7 ton ton ton pei pei'.split()
@@ -195,7 +195,8 @@ if False:
     tehai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun chun".split()
     tehai = 'm1 m1 m1 p2 p3 p4 s5 s6 s7 ton ton ton pei pei'.split()
 
-    printd_ifagari(f"mentsu_patterns: {mentsu_pattern(tehai=tehai)}")
+    tehai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun ton".split()
+    debug.printd(f"mentsu_patterns: {mentsu_pattern(tehai=tehai)}")
 
 
 

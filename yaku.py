@@ -99,16 +99,6 @@ def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
     if yaku_debug_mode:
         print(*args, sep=sep, end=end, file=file, flush=flush)
 
-# PlayerInfoとアガリ牌を渡せば、それらの情報から和了系の役があるかどうかをTrue/Falseで返す
-def agari_capable(PlayerInfo, agarihai, sousa):
-    teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
-
-    ag_cp = False
-    yaku_pattern_li = yaku(PlayerInfo, agarihai, sousa)
-    for yaku_pattern in yaku_pattern_li:
-        if any([(y in teyaku_li) for y in yaku_pattern]):
-            ag_cp = True
-    return ag_cp
 
 # いろんなデータを渡して、役の組み合わせを出力する関数
 def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
@@ -122,7 +112,7 @@ def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモで
     kawa = PlayerInfo.kawa
 
     menzen_pattern_li = mentsu_pattern.mentsu_pattern(menzen + [agarihai])
-
+    
     # アガリ系じゃなかったら空のyaku_pattern_liを返す
     integrated_tehai = menzen[:] # いっかいキレイな形の手牌を作成してifagariに渡す
     for n in naki:
@@ -142,12 +132,13 @@ def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモで
     for m in menzen_pattern_li: yaku_printd(m)
     for menzen_pattern in menzen_pattern_li:
         yaku_printd("=== menzen_pattern ", menzen_pattern)
+        debug.printd("=== menzen_pattern ", menzen_pattern)
         yaku_pattern = []
 
         # 暗槓ロン判定（国士のみ）を行う
         # まず国士判定（あらゆる場合でアガれる）
         yaochuhai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
-        if menzen_pattern[0] == yaochuhai and menzen_pattern[1] in yaochuhai:
+        if menzen_pattern[0] == yaochuhai and menzen_pattern[1][0] in yaochuhai:
             yaku_pattern.append("国士無双")
 
         # sousaが暗槓後で出アガリ形なら、国士を除いて門前払いする
@@ -163,16 +154,16 @@ def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモで
             yaku_pattern.append("槍槓")
         # ドラ
         dorasu = info.read()["kancount"] + 1
-        omote_dora_valid = info.read()["omote_dora"][:dorasu]
-        ura_dora_valid = info.read()["ura_dora"][:dorasu]
+        dora_omote_valid = info.read()["dora_omote"][:dorasu]
+        dora_ura_valid = info.read()["dora_ura"][:dorasu]
         saladbowl = menzen[:] # 手牌を物理的にぶち込んだリストを作る
         for n in naki:
                 for nn in n:
                     saladbowl.append(nn[0])
         saladbowl.append(agarihai)
         for hai in saladbowl:
-            if hai in omote_dora_valid: yaku_pattern.append("ドラ")
-            if hai in ura_dora_valid:   yaku_pattern.append("裏ドラ")
+            if hai in dora_omote_valid: yaku_pattern.append("ドラ")
+            if hai in dora_ura_valid:   yaku_pattern.append("裏ドラ")
 
 
 
@@ -200,6 +191,16 @@ def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモで
     yaku_printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
 
+# PlayerInfoとアガリ牌を渡せば、それらの情報から和了系の役があるかどうかをTrue/Falseで返す
+def agari_capable(PlayerInfo, agarihai, sousa):
+    teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
+
+    ag_cp = False
+    yaku_pattern_li = yaku(PlayerInfo, agarihai, sousa)
+    for yaku_pattern in yaku_pattern_li:
+        if any([(y in teyaku_li) for y in yaku_pattern]):
+            ag_cp = True
+    return ag_cp
 
 # 役の組み合わせからどれが最も役数が高くなるか言ってくれるやつ～
 def best_yaku(PlayerInfo, agarihai, sousa):

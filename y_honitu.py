@@ -17,4 +17,4 @@ def y_honitu(PlayerInfo, menzen_pattern, agarihai):
                 else:
                     if m_char != item[0][0]:
                         return False
-    return "混一色"
+    return "混一色_3"
