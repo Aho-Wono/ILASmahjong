@@ -88,6 +88,8 @@ for i in range(5):
     d_u = random.choice(YAMA)
     YAMA.remove(d_u)
     dora_ura.append(d_u)
+info.write(info.read() | {"dora_omote":dora_omote})
+info.write(info.read() | {"dora_ura":dora_ura})
 printd("dora:", dora_omote)
 printd("uradora:", dora_ura)
 
@@ -103,6 +105,7 @@ agari_data = []
 # ここのループでは、「捨てられた直後 → 牌を捨てる」を1ループとする（紆余曲折の末これがもっとも整って良い）
 sousa = None # ループ内でどんな操作が行われるか
 sousa_hai = None # ループ内の操作の対象牌
+ifkan = False
 
 while True: 
     # この時点で、全員が13牌
@@ -113,13 +116,13 @@ while True:
         printd("check tacha_capable_sousa")
         tacha_capable_sousa_li = []
         for i_op, OtherPlayer in enumerate(players):
-            if i_op == whoturn: continue # 自分自身の捨て牌にはアクションできませんボケ
+            if i_op == whoturn: continue # 自分自身の捨て牌・カン牌にはアクションできませんボケ
             
             # ロン判定
             # 槍槓・国士の暗槓の要素について未作成！
-            if yaku.agari_capable(OtherPlayer, sousa_hai):
+            if yaku.agari_capable(OtherPlayer, sousa_hai, sousa):
                 tacha_capable_sousa_li.append([whoturn, "ron"])
-
+            
             if OtherPlayer.ifrichi(): continue # 立直していればロン判定のみで切り上げる
             
             # 立直してない場合
@@ -164,7 +167,7 @@ while True:
                     "whoagari": tcsl[0],
                     "woagarare": whoturn,
                     "tehai": MovingPlayer.tehai,
-                    "yaku":  yaku.best_yaku(PlayerInfo= MovingPlayer, agarihai= sousa_hai), })
+                    "yaku":  yaku.best_yaku(MovingPlayer, sousa_hai, sousa), })
 
         if len(agari_data) != 0: # ロンがひとつでも承認されたらbreak
             break
@@ -247,31 +250,29 @@ while True:
 
     # 鳴いた後の操作でない場合、立直・ツモ・カンができる
     if not ifmove:
-        # 立直判定（ツモ・カン時）
-        if sousa in ["tumo", "ankan", "kakan"]:
-            if Player.ifrichi(): # 鳴いていなければ聴牌判定に入る
-                whichtotempai = []
-                for kiruhai in Player.menzen_li(): 
-                    tehai_li_copied = Player.menzen_li()[:]
-                    tehai_li_copied.remove(kiruhai)
-                    for hai in ALL_HAI:
-                        if ifagari.ifagari(tehai_li_copied + [hai]): whichtotempai.append(kiruhai)
-                capable_sousa["richi"] = ripai.ripai(set(whichtotempai)) # 重複・順序を調整
+        # 立直判定
+        if Player.ifrichi(): # 鳴いていなければ聴牌判定に入る
+            whichtotempai = []
+            for kiruhai in Player.menzen_li(): 
+                tehai_li_copied = Player.menzen_li()[:]
+                tehai_li_copied.remove(kiruhai)
+                for hai in ALL_HAI:
+                    if ifagari.ifagari(tehai_li_copied + [hai]): whichtotempai.append(kiruhai)
+            capable_sousa["richi"] = ripai.ripai(set(whichtotempai)) # 重複・順序を調整
 
         # 槓判定（暗槓・加槓）（ツモ・カン時）
         # 立直していれば待ちが変わってしまう暗槓はできないのであとあと修正が必要
         # 未作成！
-        if sousa in ["tumo", "kan"]:
-            for hai in ALL_HAI:
-                if Player.menzen_li().count(hai) == 4: # 暗槓判定
-                    capable_sousa["ankan"].append(hai)
+        for hai in ALL_HAI:
+            if Player.menzen_li().count(hai) == 4: # 暗槓判定
+                capable_sousa["ankan"].append(hai)
 
-                for naki in Player.tehai["naki"]: # 加槓判定
-                    if [i[0] for i in naki].count(hai) == 3 and (hai in Player.menzen_li()):
-                        capable_sousa["kakan"].append(hai)
+            for naki in Player.tehai["naki"]: # 加槓判定
+                if [i[0] for i in naki].count(hai) == 3 and (hai in Player.menzen_li()):
+                    capable_sousa["kakan"].append(hai)
 
         # 和了判定
-        if yaku.agari_capable(Player, tumohai):
+        if yaku.agari_capable(Player, tumohai, sousa):
             capable_sousa["tumo"] = Player.tehai["tumo"]
             
 
@@ -288,7 +289,7 @@ while True:
     if sousa == "ankan": # 暗槓
         for i in range(4):  Player.tehai["menzen"].remove(sousa_hai)
         Player.tehai["naki"].append([[sousa_hai, whoturn] for i in range(4)])
-        printd(f"{whoturn}")
+        
     elif sousa == "kakan": # 明槓   
         # 該当牌のインデックスの取得
         for k_index, n in Player.naki:
@@ -310,7 +311,7 @@ while True:
             "whoagari": whoturn,
             "woagarare": None,
             "tehai": Player.tehai,
-            "yaku":  yaku.best_yaku(PlayerInfo=Player, agarihai=tumohai), })
+            "yaku":  yaku.best_yaku(Player, tumohai, sousa), })
         break
 
     # 最後にプレイヤーのツモ牌をNoneにする

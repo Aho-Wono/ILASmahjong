@@ -1,10 +1,11 @@
 {
     "kyoku": "t1",
     "hon": 9,
-    "dora": [
+    "kancount": 0,
+    "dora_omote": [
         "m1"
     ],
-    "uradora": [
+    "dora_ura": [
         "p1"
     ]
 }
