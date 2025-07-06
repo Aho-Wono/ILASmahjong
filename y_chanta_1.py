@@ -1,4 +1,6 @@
 def y_chanta(PlayerInfo, menzen_pattern, agarihai):
+    if not PlayerInfo.ifnaki():
+        return False
     naki = PlayerInfo.tehai["naki"]
     for menz in menzen_pattern:
         flag = True
@@ -25,4 +27,4 @@ def y_chanta(PlayerInfo, menzen_pattern, agarihai):
                 flag = False
         if flag:
             return False
-    return "混全帯么九"
+    return "混全帯么九_1"
