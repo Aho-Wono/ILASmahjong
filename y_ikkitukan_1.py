@@ -1,4 +1,4 @@
-def y_ikkitukan_2(PlayerInfo, menzen_pattern, agarihai):
+def y_ikkitukan_1(PlayerInfo, menzen_pattern, agarihai):
     #食い下がりは後ほど→14行目以降でどちらも鳴いたやつを数えるが最初に.ifnakiで落とすため大丈夫　なはず
     if not PlayerInfo.ifnaki():
         return False
@@ -76,6 +76,6 @@ def y_ikkitukan_2(PlayerInfo, menzen_pattern, agarihai):
             if n_if == 528:
                 ans_ik[2] = True
     if ans_ik[0] and ans_ik[1] and ans_ik[2]:
-        return "一気通貫_2"
+        return "一気通貫_1"
     else:
         return False
