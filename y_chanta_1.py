@@ -1,4 +1,4 @@
-def y_chanta(PlayerInfo, menzen_pattern, agarihai):
+def y_chanta_1(PlayerInfo, menzen_pattern, agarihai):
     if not PlayerInfo.ifnaki():
         return False
     naki = PlayerInfo.tehai["naki"]
