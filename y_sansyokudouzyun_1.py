@@ -1,4 +1,6 @@
-def y_sansyokudouzyun(PlayerInfo, menzen_pattern, agarihai):
+def y_sansyokudouzyun_1(PlayerInfo, menzen_pattern, agarihai):
+    if PlayerInfo.ifnaki():
+        return False
     naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
@@ -37,6 +39,6 @@ def y_sansyokudouzyun(PlayerInfo, menzen_pattern, agarihai):
         if l[0][1] == kensa[1][0][1]:
             hantei2 += 1
     if hantei1 >= 3 or hantei2 >= 3:
-        return "三色同順"
+        return "三色同順_1"
     else:
         return False
