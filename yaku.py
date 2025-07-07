@@ -216,7 +216,7 @@ def best_yaku(PlayerInfo, agarihai, sousa):
     return max_yp
     # 未作成！
 
-if True:
+if False:
     class PlayerInfo:
       def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
         self.playerid = playerid # プレイヤー名 
@@ -281,7 +281,7 @@ if True:
         #["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],    
     ]
 
-    yaku_debug_mode = True
+    yaku_debug_mode = False
 
     for i, dp in enumerate(debug_patterns):
         TestPlayer.tehai["menzen"] = dp[0]
