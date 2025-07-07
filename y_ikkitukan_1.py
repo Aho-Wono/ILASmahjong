@@ -2,6 +2,8 @@ def y_ikkitukan_1(PlayerInfo, menzen_pattern, agarihai):
     #食い下がりは後ほど→14行目以降でどちらも鳴いたやつを数えるが最初に.ifnakiで落とすため大丈夫　なはず
     if not PlayerInfo.ifnaki():
         return False
+    if len(menzen_pattern) == 7:
+        return False
     zi_num = [0, 0, 0] #萬子、筒子、索子の順
     for menz in menzen_pattern:
         for item in menz:

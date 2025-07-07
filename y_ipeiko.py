@@ -2,6 +2,8 @@ import itertools
 import y_ryanpeiko
 def y_ipeiko(PlayerInfo, menzen_pattern, agarihai):
     naki = PlayerInfo.tehai["naki"]
+    if len(menzen_pattern) == 7:
+        return False
     for naki_i in naki:
         flag = naki_i[0][1] #あんかんのとき鳴いたもののリストの誰のものか(2番目)がすべて一致するはずなので、違うときにFalse
         for item in naki_i:

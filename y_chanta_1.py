@@ -1,6 +1,8 @@
 def y_chanta_1(PlayerInfo, menzen_pattern, agarihai):
     if not PlayerInfo.ifnaki():
         return False
+    if len(menzen_pattern) == 7:
+        return False
     naki = PlayerInfo.tehai["naki"]
     for menz in menzen_pattern:
         flag = True
