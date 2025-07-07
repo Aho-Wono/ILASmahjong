@@ -291,6 +291,7 @@ while True:
                 capable_sousa["tumo"] = Player.tehai["tumo"]
                 
 
+
         # プレイヤー側に、可能操作から操作を選ばせる
         for P in players:
             printd(f"({P.playerid}) {P.dbg()}")
