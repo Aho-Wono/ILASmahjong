@@ -1,5 +1,5 @@
 def y_sansyokudouzyun_2(PlayerInfo, menzen_pattern, agarihai):
-    if not PlayerInfo.ifnaki():
+    if PlayerInfo.ifnaki():
         return False
     naki = PlayerInfo.tehai["naki"]
     nakiseiri = []

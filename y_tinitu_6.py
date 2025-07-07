@@ -1,5 +1,5 @@
 def y_tinitu_6(PlayerInfo, menzen_pattern, agarihai):
-    if not PlayerInfo.ifnaki():
+    if PlayerInfo.ifnaki():
         return False
     naki = PlayerInfo.tehai["naki"]
     nakiseiri = []

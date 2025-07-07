@@ -216,7 +216,7 @@ def best_yaku(PlayerInfo, agarihai, sousa):
     return max_yp
     # 未作成！
 
-if False:
+if True:
     class PlayerInfo:
       def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
         self.playerid = playerid # プレイヤー名 
@@ -232,11 +232,11 @@ if False:
 
     # そいつが現在鳴いているかどうかの判定
       def ifnaki(self):            
-        result = True
-        for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらFalse
+        result = False
+        for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらTrue
             fromwho_li = [nn[1] for nn in n]
             for f in fromwho_li:
-                if f != fromwho_li: result = False
+                if f != fromwho_li: result = True
         return result
     
       def menzen_li(self):
@@ -275,13 +275,13 @@ if False:
     debug_patterns = [
         #["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split(), [], None, "m9"],  
         ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1]]], None, "m9"], 
-        ["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]]], None, "m9"], 
+        #["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8".split(), [[["ton", 0], ["ton", 0], ["ton", 1], ["ton", 0]]], None, "m9"], 
         #["m1 m1 m1 m2 m3 p7 p8 p9 s9 s9 s9 sha sha".split(), [], "sha", "sha"],
         #["m1 m1 m1 m2 m3 m7 m8 m9 s7 s8 s9 p7 p8".split(), [], None, "p9"],    
         #["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],    
     ]
 
-    yaku_debug_mode = False
+    yaku_debug_mode = True
 
     for i, dp in enumerate(debug_patterns):
         TestPlayer.tehai["menzen"] = dp[0]
