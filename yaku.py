@@ -101,7 +101,7 @@ def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
 
 
 # いろんなデータを渡して、役の組み合わせを出力する関数
-def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
+def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     #debug.printd("[yaku fn roaded]")
     yaku_pattern_li = []
     
@@ -217,12 +217,52 @@ def best_yaku(PlayerInfo, agarihai, sousa):
     # 未作成！
 
 if False:
-
     class PlayerInfo:
-        def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
-            self.playerid = playerid # プレイヤー名 
-            self.tehai = tehai # 手牌の情報
-            self.kawa = kawa # 河の情報
+      def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
+        self.playerid = playerid # プレイヤー名 
+        self.tehai = tehai # 手牌の情報
+        self.kawa = kawa # 河の情報
+
+    # そいつが現在立直しているかどうかの判定
+      def ifrichi(self):
+        result = False
+        for s in self.kawa:
+            if s[1]: result = True
+        return result
+
+    # そいつが現在鳴いているかどうかの判定
+      def ifnaki(self):            
+        result = True
+        for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらFalse
+            fromwho_li = [nn[1] for nn in n]
+            for f in fromwho_li:
+                if f != fromwho_li: result = False
+        return result
+    
+      def menzen_li(self):
+        if self.tehai["tumo"] != None:
+            return self.tehai["menzen"] + [self.tehai["tumo"]]
+        else:
+            return self.tehai["menzen"] 
+    
+      def dbg(self):
+        nakitx = ""
+        for i in self.tehai["naki"]:
+            for ii in i: 
+                if ii[1] == self.playerid: nakitx += f" {ii[0]}"
+                else:                      nakitx += f" {ii[0]}'"
+
+        kawatx = ""
+        for i in self.kawa:
+            if i[1]: kawatx += "_" + i[0] + " "
+            else:    kawatx += i[0] + " "
+ 
+        return f"{"_".join(ripai.ripai(self.tehai["menzen"]))} [{self.tehai["tumo"]}] {nakitx} \n {kawatx}"
+    
+      def kiru(self, hai):
+        self.tehai["menzen"].remove(hai)
+
+
     TestPlayer = PlayerInfo(
         playerid= 0, # ← 0が親
         tehai= {"menzen": [],
