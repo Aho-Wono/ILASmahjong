@@ -1,4 +1,9 @@
+import y_tinitu_5
+import y_tinitu_6
+
 def y_honitu_2(PlayerInfo, menzen_pattern, agarihai):
+    if y_tinitu_5.y_tinitu_5(PlayerInfo, menzen_pattern, agarihai) or y_tinitu_6.y_tinitu_6(PlayerInfo, menzen_pattern, agarihai):
+        return False
     if not PlayerInfo.ifnaki():
         return False
     naki = PlayerInfo.tehai["naki"]
