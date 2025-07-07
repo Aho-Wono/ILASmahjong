@@ -1,4 +1,6 @@
 def y_sananko(PlayerInfo, menzen_pattern, agarihai):
+    if len(menzen_pattern) == 7:
+        return False
     ank_n = 0
     for menz in menzen_pattern:
         if menz.count(menz[0]) == 3:
