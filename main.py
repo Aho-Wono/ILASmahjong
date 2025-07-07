@@ -8,8 +8,6 @@ import yaku
 
 ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
 
-AUTOMODE = True
-
 # とりあえず1局まるまる遊べるようなものを作ります
 # プレイヤーの状況を包括するクラスを作成
 class PlayerInfo:
@@ -170,71 +168,70 @@ while True:
             printd("ron_li:", tacha_ron_li)
 
             # 他家に選択させる
-            if not AUTOMODE:
-                # まず他家プレイヤーにロンの選択をさせる
-                for tcsl in tacha_ron_li:
-                    # 他家プレイヤーに選択させる
-                    ifmove_q = input(f"{tcsl} で動きますか？:")
-                    if ifmove_q == "y": # 他家が選択を承認したら 
-                        ifmove = True
-                        MovingPlayer = players[tcsl[0]]
-                        agari_data.append({
-                            "whoagari": tcsl[0],
-                            "whoagarare": whoturn,
-                            "tehai": MovingPlayer.tehai,
-                            "yaku":  yaku.best_yaku(MovingPlayer, sousa_hai, sousa), })
+            # まず他家プレイヤーにロンの選択をさせる
+            for tcsl in tacha_ron_li:
+                # 他家プレイヤーに選択させる
+                ifmove_q = input(f"{tcsl} で動きますか？:")
+                if ifmove_q == "y": # 他家が選択を承認したら 
+                    ifmove = True
+                    MovingPlayer = players[tcsl[0]]
+                    agari_data.append({
+                        "whoagari": tcsl[0],
+                        "whoagarare": whoturn,
+                        "tehai": MovingPlayer.tehai,
+                        "yaku":  yaku.best_yaku(MovingPlayer, sousa_hai, sousa), })
 
-                if len(agari_data) != 0: # ロンがひとつでも承認されたらbreak
+            if len(agari_data) != 0: # ロンがひとつでも承認されたらbreak
+                break
+
+            for tcsl in tacha_without_ron_li:
+                # 他家プレイヤーに選択させる
+                ifmove_q = input(f"{tcsl} で動きますか？:")
+                if ifmove_q == "y": # 他家が選択を承認したら 
+                    ifmove = True
+                    MovingPlayer = players[tcsl[0]]
+
+                    # 承認された操作を実際に行う
+                    if tcsl[1] == "pon": # ポンの場合
+                        for i in range(2): MovingPlayer.kiru(sousa_hai)
+                        MovingPlayer.tehai["naki"].append([
+                            [sousa_hai, tcsl[0]],
+                            [sousa_hai, tcsl[0]],
+                            [sousa_hai, whoturn],])
+                    elif tcsl[1] == "daiminkan": # カンの場合
+                        for i in range(3): MovingPlayer.kiru(sousa_hai)
+                        MovingPlayer.tehai["naki"].append([
+                            [sousa_hai, tcsl[0]],
+                            [sousa_hai, tcsl[0]],
+                            [sousa_hai, tcsl[0]],
+                            [sousa_hai, whoturn],])
+                        info.edit("kancount", info.read()["kancount"] + 1)
+                    elif tcsl[1] == "chi": # チーの場合
+                        # チー候補を見つける
+                        chi_koho = []
+
+                        sh_mps, sh_n = sousa_hai[0], int(sousa_hai[1])
+                        MPtm = MovingPlayer.tehai["menzen"]
+                        if f"{sh_mps}{sh_n-2}" in MPtm and f"{sh_mps}{sh_n-1}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n-2}", f"{sh_mps}{sh_n-1}"])
+                        if f"{sh_mps}{sh_n-1}" in MPtm and f"{sh_mps}{sh_n+1}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n-1}", f"{sh_mps}{sh_n+1}"])
+                        if f"{sh_mps}{sh_n+1}" in MPtm and f"{sh_mps}{sh_n+2}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n+1}", f"{sh_mps}{sh_n+2}"])
+                        
+                        # チー候補をプレイヤーに絞り込ませる
+                        if len(chi_koho) == 1:
+                            chi_sousa = chi_koho[0]
+                        else:
+                            chi_n = int(input(f"どれにしますか？（インデックスで）{chi_koho}"))
+                            chi_sousa = chi_koho[chi_n]
+                        
+                        for i in range(2): MovingPlayer.kiru(chi_sousa[i])
+                        MovingPlayer.tehai["naki"].append([
+                            [chi_sousa[0], tcsl[0]],
+                            [chi_sousa[1], tcsl[0]],
+                            [sousa_hai, whoturn],])
+
+                    whoturn = tcsl[0] # あとのループ内の対象プレイヤーを確定させる
                     break
-
-                for tcsl in tacha_without_ron_li:
-                    # 他家プレイヤーに選択させる
-                    ifmove_q = input(f"{tcsl} で動きますか？:")
-                    if ifmove_q == "y": # 他家が選択を承認したら 
-                        ifmove = True
-                        MovingPlayer = players[tcsl[0]]
-
-                        # 承認された操作を実際に行う
-                        if tcsl[1] == "pon": # ポンの場合
-                            for i in range(2): MovingPlayer.kiru(sousa_hai)
-                            MovingPlayer.tehai["naki"].append([
-                                [sousa_hai, tcsl[0]],
-                                [sousa_hai, tcsl[0]],
-                                [sousa_hai, whoturn],])
-                        elif tcsl[1] == "daiminkan": # カンの場合
-                            for i in range(3): MovingPlayer.kiru(sousa_hai)
-                            MovingPlayer.tehai["naki"].append([
-                                [sousa_hai, tcsl[0]],
-                                [sousa_hai, tcsl[0]],
-                                [sousa_hai, tcsl[0]],
-                                [sousa_hai, whoturn],])
-                            info.edit("kancount", info.read()["kancount"] + 1)
-                        elif tcsl[1] == "chi": # チーの場合
-                            # チー候補を見つける
-                            chi_koho = []
-
-                            sh_mps, sh_n = sousa_hai[0], int(sousa_hai[1])
-                            MPtm = MovingPlayer.tehai["menzen"]
-                            if f"{sh_mps}{sh_n-2}" in MPtm and f"{sh_mps}{sh_n-1}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n-2}", f"{sh_mps}{sh_n-1}"])
-                            if f"{sh_mps}{sh_n-1}" in MPtm and f"{sh_mps}{sh_n+1}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n-1}", f"{sh_mps}{sh_n+1}"])
-                            if f"{sh_mps}{sh_n+1}" in MPtm and f"{sh_mps}{sh_n+2}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n+1}", f"{sh_mps}{sh_n+2}"])
-                            
-                            # チー候補をプレイヤーに絞り込ませる
-                            if len(chi_koho) == 1:
-                                chi_sousa = chi_koho[0]
-                            else:
-                                chi_n = int(input(f"どれにしますか？（インデックスで）{chi_koho}"))
-                                chi_sousa = chi_koho[chi_n]
-                            
-                            for i in range(2): MovingPlayer.kiru(chi_sousa[i])
-                            MovingPlayer.tehai["naki"].append([
-                                [chi_sousa[0], tcsl[0]],
-                                [chi_sousa[1], tcsl[0]],
-                                [sousa_hai, whoturn],])
-
-                        whoturn = tcsl[0] # あとのループ内の対象プレイヤーを確定させる
-                        break
-                
+            
             if not ifmove: # 捨てられた牌に対して誰も動かなかったら
                 whoturn = (whoturn + 1) % 4 # 下家にターンをゆずる
                 
@@ -257,9 +254,6 @@ while True:
         # この時点で、一人だけ14牌    
         Player = players[whoturn] # 対象プレイヤーを指定
         
-
-
-
         capable_sousa = { # プレイヤーができる操作を指定
             "tumo": [],
             
@@ -302,10 +296,7 @@ while True:
             printd(f"({P.playerid}) {P.dbg()}")
         printd("capable_sousa: ", capable_sousa)
 
-        if not AUTOMODE:
-            sinp = input("sousa:").split()
-        else:
-            sinp = ["kiru", random.choice(Player.menzen_li())]
+        sinp = input("sousa:").split()
 
         sousa, sousa_hai = sinp[0], sinp[1]
 
