@@ -222,93 +222,98 @@ class Kyoku():
         else:
             return self.previous_cmd[0]
         
-    def do_cmd(self, cmd):
-        print("do cmd:", cmd)
-        self.previous_cmd = cmd # 直前に行われた操作を保存する
+    def do_cmds(self, cmds): # ダブロン・トリロンに対応するためcmdはリストにしている
+        print("do cmds:", cmds)
         
-        if cmd == None: 
+        if cmds == None: 
+            self.previous_cmd = cmds # 直前に行われた操作を保存する
             return # 何もしない
         
-        p_id = int(cmd[0])
-        Player = self.players[p_id]
-        sousa = cmd[1]
-        sousa_hai = cmd[2]
+        self.previous_cmd = cmds[0] # 直前に行われた操作を保存する
+        
+        for cmd in cmds:
+            p_id = int(cmd[0])
+            Player = self.players[p_id]
+            sousa = cmd[1]
+            sousa_hai = cmd[2]
 
-        # 選択された操作に基づいて処理を行う
-        if sousa in "ankan kakan richi tumo kiru".split():
-            # 自分の手牌を編集する系のやつ
+            # 選択された操作に基づいて処理を行う
+            if sousa in "ankan kakan richi tumo kiru".split():
+                # 自分の手牌を編集する系のやつ
 
-            if sousa == "ankan": # 暗槓
-                for i in range(4):  Player.kiru(sousa_hai)
-                Player.tehai["naki"].append([[sousa_hai, self.whoturn] for i in range(4)])
+                if sousa == "ankan": # 暗槓
+                    for i in range(4):  Player.kiru(sousa_hai)
+                    Player.tehai["naki"].append([[sousa_hai, self.whoturn] for i in range(4)])
+                    
+                elif sousa == "kakan": # 明槓   
+                    # 該当牌のインデックスの取得
+                    for k_index, n in Player.naki:
+                        if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
+                            Player.tehai["naki"][k_index].append([sousa_hai, self.whoturn])
+
+                elif sousa == "kiru": # 普通に切るとき
+                    if Player.status == "tumo": # 鳴き後に切るときは手牌に牌を追加しない 
+                        Player.tehai["menzen"].append(Player.tehai["tumo"]) # ここで一度14牌にし、ツモ切りにも対応する
+                    Player.kiru(sousa_hai)
+                    Player.kawa.append([sousa_hai, False])
+
+                elif sousa == "richi": # 立直
+                    Player.tehai["menzen"].append(Player.tehai["tumo"])
+                    Player.kiru(sousa_hai)
+                    Player.kawa.append([sousa_hai, True])
                 
-            elif sousa == "kakan": # 明槓   
-                # 該当牌のインデックスの取得
-                for k_index, n in Player.naki:
-                    if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
-                        Player.tehai["naki"][k_index].append([sousa_hai, self.whoturn])
+                elif sousa == "tumo": # ツモ和了
+                    self.agari_data.append({
+                        "whoagari": self.whoturn,
+                        "whoagarare": None,
+                        "tehai": Player.tehai,
+                        "yaku":  yaku.best_yaku(Player, Player.tehai["tumo"], self.get_previous_sousa()), })
+                    
+                Player.status = "wait"
+            else:
+                # 他人の捨て牌を鳴く系のやつ
 
-            elif sousa == "kiru": # 普通に切るとき
-                if Player.status == "tumo": # 鳴き後に切るときは手牌に牌を追加しない 
-                    Player.tehai["menzen"].append(Player.tehai["tumo"]) # ここで一度14牌にし、ツモ切りにも対応する
-                Player.kiru(sousa_hai)
-                Player.kawa.append([sousa_hai, False])
+                if sousa == "pon": # ポンの場合
+                    for i in range(2): Player.kiru(sousa_hai)
+                    Player.tehai["naki"].append([
+                        [sousa_hai, p_id],
+                        [sousa_hai, p_id],
+                        [sousa_hai, self.whoturn],])
+                    
+                elif sousa == "daiminkan": # カンの場合
+                    for i in range(3): Player.kiru(sousa_hai)
+                    Player.tehai["naki"].append([
+                        [sousa_hai, p_id],
+                        [sousa_hai, p_id],
+                        [sousa_hai, p_id],
+                        [sousa_hai, self.whoturn],])
+                    info.edit("kancount", info.read()["kancount"] + 1)
 
-            elif sousa == "richi": # 立直
-                Player.tehai["menzen"].append(Player.tehai["tumo"])
-                Player.kiru(sousa_hai)
-                Player.kawa.append([sousa_hai, True])
-            
-            elif sousa == "tumo": # ツモ和了
-                self.agari_data.append({
-                    "whoagari": self.whoturn,
-                    "whoagarare": None,
-                    "tehai": Player.tehai,
-                    "yaku":  yaku.best_yaku(Player, Player.tehai["tumo"], self.get_previous_sousa()), })
+                elif sousa == "chi": # チーの場合
+                    sh_mps, sh_n = sousa_hai[0][0], int(sousa_hai[0][1])
+                    Player.kiru(f"{sh_mps}{sh_n+sousa_hai[1]}")
+                    Player.kiru(f"{sh_mps}{sh_n+sousa_hai[2]}")
+                    Player.tehai["naki"].append([
+                        [f"{sh_mps}{sh_n+sousa_hai[1]}", p_id],
+                        [f"{sh_mps}{sh_n+sousa_hai[2]}", p_id],
+                        [sousa_hai[0], self.whoturn],])
+                    
+                elif sousa == "ron": # ロン和了
+                    self.agari_data.append({
+                        "whoagari": p_id,
+                        "whoagarare": self.whoturn,
+                        "tehai": Player.tehai,
+                        "yaku":  yaku.best_yaku(Player, sousa_hai, sousa), })
+
+                    
+                Player.status = "naki"
                 
-            Player.status = "wait"
-        else:
-            # 他人の捨て牌を鳴く系のやつ
-
-            if sousa == "pon": # ポンの場合
-                for i in range(2): Player.kiru(sousa_hai)
-                Player.tehai["naki"].append([
-                    [sousa_hai, p_id],
-                    [sousa_hai, p_id],
-                    [sousa_hai, self.whoturn],])
-                
-            elif sousa == "daiminkan": # カンの場合
-                for i in range(3): Player.kiru(sousa_hai)
-                Player.tehai["naki"].append([
-                    [sousa_hai, p_id],
-                    [sousa_hai, p_id],
-                    [sousa_hai, p_id],
-                    [sousa_hai, self.whoturn],])
-                info.edit("kancount", info.read()["kancount"] + 1)
-
-            elif sousa == "chi": # チーの場合
-                sh_mps, sh_n = sousa_hai[0][0], int(sousa_hai[0][1])
-                Player.kiru(f"{sh_mps}{sh_n+sousa_hai[1]}")
-                Player.kiru(f"{sh_mps}{sh_n+sousa_hai[2]}")
-                Player.tehai["naki"].append([
-                    [f"{sh_mps}{sh_n+sousa_hai[1]}", p_id],
-                    [f"{sh_mps}{sh_n+sousa_hai[2]}", p_id],
-                    [sousa_hai[0], self.whoturn],])
-                
-            elif sousa == "ron": # ロン和了
-                self.agari_data.append({
-                    "whoagari": p_id,
-                    "whoagarare": self.whoturn,
-                    "tehai": Player.tehai,
-                    "yaku":  yaku.best_yaku(Player, sousa_hai, sousa), })
-
-                
-            Player.status = "naki"
-            
         # 最後にプレイヤーのツモ牌をNoneにし、ステータスをwaitにし、誰のターンかを更新する
-        Player.tehai["tumo"] = None
-        Player.status = "wait"
-        self.whoturn = p_id
+        # ロンの場合はここらへんがぐちゃぐちゃになってしまうので奇妙な対策をする
+        if len(cmds) != 1:
+            Player.tehai["tumo"] = None
+            Player.status = "wait"
+            self.whoturn = p_id
 
 
     def step(self):
@@ -334,18 +339,20 @@ Game.reset_kyoku()
 while True:
     # プレイヤーができる操作を取得する
     capable_sousa_li = Game.get_capable_sousa()
-
+    
     if capable_sousa_li == []: # プレイヤーの選択余地がなかったら
-        cmd = None
+        cmds = None
     else:
         # プレイヤーに選択させる
         Game.dbg()
         print("capable_sousa_li:", capable_sousa_li)
-        cmd = input("INPUT CMD [who, sousa, hai]: ").split()
-        if cmd == []: cmd = None
+        
+        cmds = [input("INPUT CMD [who, sousa, hai]: ").split()]
+        if cmds == [""]: cmds = None
 
     # プレイヤーのコマンドを実行する
-    Game.do_cmd(cmd)
+    Game.do_cmds(cmds)
+
 
 
     # 局が終わるかの判定をここで行う
