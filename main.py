@@ -50,7 +50,7 @@ class PlayerInfo:
             if i[1]: kawatx += "_" + i[0] + " "
             else:    kawatx += i[0] + " "
  
-        return f"{"_".join(ripai.ripai(self.tehai["menzen"]))} [{self.tehai["tumo"]}] {nakitx} \n {kawatx}"
+        return f"{self.status} {"_".join(ripai.ripai(self.tehai["menzen"]))} [{self.tehai["tumo"]}] {nakitx} \n {kawatx}"
     
     def kiru(self, hai):
         self.tehai["menzen"].remove(hai)
@@ -221,15 +221,14 @@ class Kyoku():
             return None
         else:
             return self.previous_cmd[0]
+        
     def do_cmd(self, cmd):
         print("do cmd:", cmd)
         self.previous_cmd = cmd # 直前に行われた操作を保存する
         
-
         if cmd == None: 
             return # 何もしない
         
-
         p_id = int(cmd[0])
         Player = self.players[p_id]
         sousa = cmd[1]
@@ -238,7 +237,6 @@ class Kyoku():
         # 選択された操作に基づいて処理を行う
         if sousa in "ankan kakan richi tumo kiru".split():
             # 自分の手牌を編集する系のやつ
-            Player.status = "wait"
 
             if sousa == "ankan": # 暗槓
                 for i in range(4):  Player.kiru(sousa_hai)
@@ -249,11 +247,13 @@ class Kyoku():
                 for k_index, n in Player.naki:
                     if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
                         Player.tehai["naki"][k_index].append([sousa_hai, self.whoturn])
+
             elif sousa == "kiru": # 普通に切るとき
                 if Player.status == "tumo": # 鳴き後に切るときは手牌に牌を追加しない 
                     Player.tehai["menzen"].append(Player.tehai["tumo"]) # ここで一度14牌にし、ツモ切りにも対応する
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, False])
+
             elif sousa == "richi": # 立直
                 Player.tehai["menzen"].append(Player.tehai["tumo"])
                 Player.kiru(sousa_hai)
@@ -265,9 +265,10 @@ class Kyoku():
                     "whoagarare": None,
                     "tehai": Player.tehai,
                     "yaku":  yaku.best_yaku(Player, Player.tehai["tumo"], self.get_previous_sousa()), })
+                
+            Player.status = "wait"
         else:
             # 他人の捨て牌を鳴く系のやつ
-            Player.status = "naki"
 
             if sousa == "pon": # ポンの場合
                 for i in range(2): Player.kiru(sousa_hai)
@@ -275,6 +276,7 @@ class Kyoku():
                     [sousa_hai, p_id],
                     [sousa_hai, p_id],
                     [sousa_hai, self.whoturn],])
+                
             elif sousa == "daiminkan": # カンの場合
                 for i in range(3): Player.kiru(sousa_hai)
                 Player.tehai["naki"].append([
@@ -283,6 +285,7 @@ class Kyoku():
                     [sousa_hai, p_id],
                     [sousa_hai, self.whoturn],])
                 info.edit("kancount", info.read()["kancount"] + 1)
+
             elif sousa == "chi": # チーの場合
                 sh_mps, sh_n = sousa_hai[0][0], int(sousa_hai[0][1])
                 Player.kiru(f"{sh_mps}{sh_n+sousa_hai[1]}")
@@ -291,23 +294,36 @@ class Kyoku():
                     [f"{sh_mps}{sh_n+sousa_hai[1]}", p_id],
                     [f"{sh_mps}{sh_n+sousa_hai[2]}", p_id],
                     [sousa_hai[0], self.whoturn],])
+                
+            elif sousa == "ron": # ロン和了
+                self.agari_data.append({
+                    "whoagari": p_id,
+                    "whoagarare": self.whoturn,
+                    "tehai": Player.tehai,
+                    "yaku":  yaku.best_yaku(Player, sousa_hai, sousa), })
+
+                
+            Player.status = "naki"
             
-        # 最後にプレイヤーのツモ牌をNoneにし、ステータスをwaitにする
+        # 最後にプレイヤーのツモ牌をNoneにし、ステータスをwaitにし、誰のターンかを更新する
         Player.tehai["tumo"] = None
         Player.status = "wait"
+        self.whoturn = p_id
 
 
     def step(self):
         if self.previous_cmd == None:
             # 前の操作がなければ次のひとにツモらせる
             self.whoturn = (self.whoturn + 1) % 4 # 下家にターンをゆずる
+            Player = self.players[self.whoturn]
+
             tumohai = random.choice(self.YAMA)
             self.YAMA.remove(tumohai)
-            self.players[self.whoturn].tehai["tumo"] = tumohai
-            self.players[self.whoturn].status = "tumo"
+            Player.tehai["tumo"] = tumohai
+            Player.status = "tumo"
             for i in [0,1,2,3]:
-                if i == self.whoturn:
-                    self.players[self.whoturn].status = "wait"
+                if i != self.whoturn:
+                    self.players[i].status = "wait"
         
     def dbg(self):
         for P in self.players: printd(P.dbg())
