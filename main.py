@@ -58,11 +58,6 @@ class PlayerInfo:
 
 
 
-# infoの初期化
-info.edit("kyoku", "t1")
-info.edit("hon", 0)
-
-
 
 class Kyoku():
     def __init__(self):
@@ -334,8 +329,13 @@ class Kyoku():
         for P in self.players: printd(P.dbg())
 
 
+
 # 半荘の開始
 printd("HANCHAN STARTED")
+# infoの初期化
+info.edit("kyoku", "t1")
+info.edit("hon", 0)
+
 while True:
     # 局の初期化
     Game = Kyoku()
