@@ -69,7 +69,7 @@ class Kyoku():
 
     def reset_kyoku(self):
         # 開局時の初期化を行う
-        printd("INITIALIZE KYOKU")
+        printd(f"START {info.read()["kyoku"].upper()}")
 
         # 4人分のクラスオブジェクトを作成（playersというリストにData_A, Data_B, Data_C, Data_Dが入ってるイメージ）
         # 基本的に4人のクラスはこのリストの中のオブジェクトとしてまとめて扱う（例えばData_A=…のようにして4つの管理はしないという意味）
@@ -123,7 +123,6 @@ class Kyoku():
         self.phase = "hai_kiru_before"
         self.previous_cmd = None
         self.agari_data = [] # その局でだれが何をアガるかの変数
-        self.oyakeep = False # その局で親がキープされるかの変数
 
 
         # 親に1牌ツモらせる
@@ -332,122 +331,71 @@ class Kyoku():
         
     def dbg(self):
         for P in self.players: printd(P.dbg())
-        
-# 局の初期化
-Game = Kyoku()
-Game.reset_kyoku()
+
+
+# 半荘の開始
+printd("HANCHAN STARTED")
 while True:
-    # プレイヤーができる操作を取得する
-    capable_sousa_li = Game.get_capable_sousa()
-    
-    if capable_sousa_li == []: # プレイヤーの選択余地がなかったら
-        cmds = None
-    else:
-        # プレイヤーに選択させる
-        Game.dbg()
-        print("capable_sousa_li:", capable_sousa_li)
+    # 局の初期化
+    Game = Kyoku()
+    Game.reset_kyoku()
+    while True:
+        # プレイヤーができる操作を取得する
+        capable_sousa_li = Game.get_capable_sousa()
         
-        cmds = [input("INPUT CMD [who, sousa, hai]: ").split()]
-        if cmds == [""]: cmds = None
+        if capable_sousa_li == []: # プレイヤーの選択余地がなかったら
+            cmds = None
+        else:
+            # プレイヤーに選択させる
+            Game.dbg()
+            print("capable_sousa_li:", capable_sousa_li)
+            
+            cmds = [input("INPUT CMD [who, sousa, hai]: ").split()]
+            if cmds == [""]: cmds = None
 
-    # プレイヤーのコマンドを実行する
-    Game.do_cmds(cmds)
+        # プレイヤーのコマンドを実行する
+        Game.do_cmds(cmds)
 
 
 
-    # 局が終わるかの判定をここで行う
-    # 誰かがアガってたら終了
-    if Game.agari_data != []: 
-        printd(Game.agari_data)
-        break
-    # 残りのツモ牌がなかったら終了
-    if Game.previous_cmd == None and len(Game.YAMA) <= 4:
-        # 流し満貫の判定
-        # 未作成！
-        break
-
-    # プレイヤーの操作が絡む場所までゲームをすすめる
-    Game.step()
-        
-printd("FINISH")
-
-while False:
-
-    # 操作をリストアップしたら、優先度の判定をしていく
-    # まずはロンが含まれてるか否かの判定をする
-    
-    capable_sousa_li.sort(key=lambda x: ["ron", "daiminkan", "pon", "chi"].index(x[1]))
-
-    
-    tacha_ron_li = [tcsl for tcsl in capable_sousa_li if tcsl[1] == "ron"]
-    tacha_without_ron_li = [tcsl for tcsl in capable_sousa_li if tcsl[1] != "ron"] 
-    printd("ron_li:", tacha_ron_li)
-
-    # 他家に選択させる
-    # まず他家プレイヤーにロンの選択をさせる
-    for tcsl in tacha_ron_li:
-        # 他家プレイヤーに選択させる
-        ifmove_q = input(f"{tcsl} で動きますか？:")
-        if ifmove_q == "y": # 他家が選択を承認したら 
-            ifmove = True
-            Player = players[p_id]
-            agari_data.append({
-                "whoagari": p_id,
-                "whoagarare": self.whoturn,
-                "tehai": Player.tehai,
-                "yaku":  yaku.best_yaku(Player, sousa_hai, sousa), })
-
-    if len(agari_data) != 0: # ロンがひとつでも承認されたらbreak
-        break
-
-    for tcsl in tacha_without_ron_li:
-        # 他家プレイヤーに選択させる
-        ifmove_q = input(f"{tcsl} で動きますか？:")
-        if ifmove_q == "y": # 他家が選択を承認したら 
-            ifmove = True
-            Player = players[p_id]
-
-            self.whoturn = p_id # あとのループ内の対象プレイヤーを確定させる
+        # 局が終わるかの判定をここで行う
+        # 誰かがアガってたら終了
+        if Game.agari_data != []: 
+            printd(Game.agari_data)
             break
+        # 残りのツモ牌がなかったら終了
+        if Game.previous_cmd == None and len(Game.YAMA) <= 4:
+            # 流し満貫の判定
+            # 未作成！
+            break
+
+        # プレイヤーの操作が絡む場所までゲームをすすめる
+        Game.step()
     
-    if not ifmove: # 捨てられた牌に対して誰も動かなかったら
-        self.whoturn = (self.whoturn + 1) % 4 # 下家にターンをゆずる
-        
+    printd(f"FINISH {info.read()["kyoku"].upper()}")
 
-
-
-while False:
-
-
-    # ここのループでは、「捨てられた直後 → 牌を捨てる」を1ループとする（紆余曲折の末これがもっとも整って良い）
-    sousa = None # ループ内でどんな操作が行われるか
-    sousa_hai = None # ループ内の操作の対象牌
-    ifkan = False
-
-
-
-    printd("agari_data:", agari_data)
-
+    # 点数計算・点棒のやりとり
+    oyakeep = False
     # 流局かそうでないかで場合分け
-    if len(agari_data) == 0:
-        printd("RYUKYOKU")
+    if len(Game.agari_data) == 0: 
+        printd("RYUKYOKU(?)")
         # 流し満貫の判定
         # 未作成！！！
-
-
-    if len(agari_data) != 0:
+        if False:
+            Game.agari_data.append(
+                {
+                    "hogehoge"
+                }
+            )
+    if len(Game.agari_data) != 0:
         printd("AGARI")
         # 親がキープされるかの判定
-        for agd in agari_data:
-            if agd["whoagari"] == info.oya():
-                oyakeep = True
-        
-        # 点数計算・点棒移動の処理
-
-    # 箱割れが発生したらbreak
-    # 未作成！！！
-
-
+        for agd in Game.agari_data:
+            if agd["whoagari"] == info.getoya():
+                oyakeep = True    
+            # 点数計算・点棒移動の処理  
+            # 未作成！！
+    
     # 次局のためのinfo編集
     if oyakeep: # 親キープの場合
         info.edit("hon", info.read()["hon"] + 1)
@@ -458,4 +406,9 @@ while False:
             break
         else:
             info.edit("kyoku", kyoku_li[now_kyoku_index+1])
-printd("HANCHAN END")
+                        
+    # 箱割れが発生したらbreak
+    # 未作成！！！
+    if False:
+        break
+printd("HANCHAN FINISHED")

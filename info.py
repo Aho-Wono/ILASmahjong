@@ -24,5 +24,5 @@ def edit(key, value):
     data[key] = value
     write(data= data)
 
-def oya():
+def getoya():
     return 0 + int(read()["kyoku"][1]) - 1
