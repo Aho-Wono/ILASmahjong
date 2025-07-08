@@ -25,11 +25,11 @@ class PlayerInfo:
 
     # そいつが現在鳴いているかどうかの判定
     def ifnaki(self):            
-        result = True
-        for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらFalse
+        result = False
+        for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらTrue
             fromwho_li = [nn[1] for nn in n]
             for f in fromwho_li:
-                if f != fromwho_li: result = False
+                if f != fromwho_li: result = True
         return result
     
     def menzen_li(self):
