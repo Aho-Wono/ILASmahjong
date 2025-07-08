@@ -132,7 +132,6 @@ def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモで
     for m in menzen_pattern_li: yaku_printd(m)
     for menzen_pattern in menzen_pattern_li:
         yaku_printd("=== menzen_pattern ", menzen_pattern)
-        debug.printd("=== menzen_pattern ", menzen_pattern)
         yaku_pattern = []
 
         # 暗槓ロン判定（国士のみ）を行う
