@@ -6,7 +6,6 @@ from debug import printd
 from debug import printc
 import yaku
 
-ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
 
 # とりあえず1局まるまる遊べるようなものを作ります
 # プレイヤーの状況を包括するクラスを作成
@@ -16,6 +15,8 @@ class PlayerInfo:
         self.tehai = tehai # 手牌の情報
         self.kawa = kawa # 河の情報
         self.status = status
+        self.ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
+
     # そいつが現在立直しているかどうかの判定
     def ifrichi(self):
         result = False
@@ -87,7 +88,7 @@ class Kyoku():
 
         # 山を作り、王牌や配牌を設定する→しようと思ってたけど毎回ランダムにツモればシャッフル山作る必要なくね？と思ったのでやっぱなし　河原ごめん！
         #haipai.haipai()
-        self.YAMA = ALL_HAI*4 # すべての牌が入っている山を作成
+        self.YAMA = self.ALL_HAI*4 # すべての牌が入っている山を作成
         for Player in self.players: # ←ここでPlayerが大文字なのはクラスの変数名のイニシャルが慣習的に大文字だから
             haipai = []
             for i in range(13): # 親子で最初に13枚ずつ取る
@@ -150,14 +151,14 @@ class Kyoku():
                     for kiruhai in Player.menzen_li(): 
                         tehai_li_copied = Player.menzen_li()[:]
                         tehai_li_copied.remove(kiruhai)
-                        for hai in ALL_HAI:
+                        for hai in self.ALL_HAI:
                             if ifagari.ifagari(tehai_li_copied + [hai]):
                                 capable_sousa_li.append([self.whoturn, "richi", kiruhai]) # 重複・順序を調整
 
                 # 槓判定（暗槓・加槓）（ツモ・カン時）
                 # 立直していれば待ちが変わってしまう暗槓はできないのであとあと修正が必要
                 # 未作成！
-                for hai in ALL_HAI:
+                for hai in self.ALL_HAI:
                     if Player.menzen_li().count(hai) == 4: # 暗槓判定
                         capable_sousa_li.append([self.whoturn, "ankan", hai])
 
