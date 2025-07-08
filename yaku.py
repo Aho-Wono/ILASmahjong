@@ -163,7 +163,7 @@ def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモで
         saladbowl.append(agarihai)
         for hai in saladbowl:
             if hai in dora_omote_valid: yaku_pattern.append("ドラ")
-            if hai in dora_ura_valid and (not PlayerInfo.ifnaki()):   yaku_pattern.append("裏ドラ")
+            if hai in dora_ura_valid and PlayerInfo.ifrichi():   yaku_pattern.append("裏ドラ")
 
 
 
