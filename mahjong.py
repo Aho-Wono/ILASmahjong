@@ -119,7 +119,7 @@ class Mahjong():
         self.whoturn = info.getoya() # 誰が親かで最初にツモるひとを判定する (0~4)
         
         self.phase = Phase.WAIT_SELF
-        self.previous_cmd = [None, None, None]
+        self.previous_cmd = [None, "kiru", None]
         self.agari_data = [] # その局でだれが何をアガるかの変数
 
 
@@ -209,13 +209,13 @@ class Mahjong():
         return capable_sousa_li
    
     def do_cmd(self, cmd): # ダブロン・トリロンに対応するためcmdはリストにしている
-        print("do cmd:", cmd)
-        
+
         if cmd == None: 
             return # 何もしない
         
         # 何かしら操作が行われた場合
-
+        print("do cmd:", cmd)
+        
         self.previous_cmd = cmd # 直前に行われた操作を保存する
         
         p_id = int(cmd[0])
@@ -307,7 +307,7 @@ class Mahjong():
         Player.tehai["tumo"] = tumohai
     
     def dbg(self):
-        for P in self.players: printd(P.dbg())
+        return "\n".join([P.dbg() for P in self.players])
 
     def finish_kyoku(self):
         printd("FINISHED")

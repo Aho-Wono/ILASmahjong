@@ -103,6 +103,8 @@ def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
 # いろんなデータを渡して、役の組み合わせを出力する関数
 def yaku(PlayerInfo, agarihai, sousa): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     #debug.printd("[yaku fn roaded]")
+    #debug.printd(PlayerInfo.dbg(), agarihai, sousa)
+    
     yaku_pattern_li = []
     
     playerid = PlayerInfo.playerid

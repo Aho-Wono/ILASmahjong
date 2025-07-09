@@ -2,6 +2,7 @@ import sys
 import pygame
 from mahjong import Mahjong
 from debug import printd
+import random
 
 # ---------- 初期化 ----------
 pygame.init()
@@ -10,11 +11,8 @@ screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 pygame.display.set_caption("Mahjong 1 Kyoku")
 clock = pygame.time.Clock()
 
-# ゲームロジック
-Game = Mahjong()
-
 # 自分（ローカル）のプレイヤー ID　※今回は 0 固定
-MY_PID = 0
+
 
 def click_to_cmd(pos, actions):
     """
@@ -27,7 +25,7 @@ def click_to_cmd(pos, actions):
     """
     if not actions:
         return None
-    return actions[0]      # ← とりあえず最優先で切らせる
+    return random.choice(actions) # とりまRandomで返すべ…
 
 def draw(game):
     """
@@ -38,8 +36,8 @@ def draw(game):
     font = pygame.font.SysFont(None, 24)
 
     y = 20
-    for pid, player in enumerate(game.players):
-        tx = f"P{pid} : {' '.join(player.menzen_li())}"
+    for Player in game.players:
+        tx = Player.dbg()
         txt = font.render(tx, True, (255, 255, 255))
         screen.blit(txt, (20, y))
         y += 30
@@ -52,6 +50,7 @@ def draw(game):
 
 
 Game = Mahjong()
+MY_PID = 0
 
 running = True
 while running: # ここがtkinterでいうとこのmainloop()
@@ -66,9 +65,10 @@ while running: # ここがtkinterでいうとこのmainloop()
             wait_p_id = Game.wait_p_id       # Mahjong から直接読む
             printd(f"WAITING {wait_p_id}")
             cmd = None
-            
+
             if wait_p_id == MY_PID:
-                actions = Game.get_capable_sousa(MY_PID)
+                actions = Game.get_capable_sousa()
+                printd("actions:", actions)
                 cmd = click_to_cmd(ev.pos, actions)
 
     # ② ロジックを 1 フレーム進める
