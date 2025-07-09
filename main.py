@@ -33,7 +33,7 @@ class PlayerInfo:
         for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらTrue
             fromwho_li = [nn[1] for nn in n]
             for f in fromwho_li:
-                if f != fromwho_li: result = True
+                if f != self.playerid: result = True
         return result
     
     def menzen_li(self):
@@ -143,7 +143,7 @@ class Mahjong():
                 capable_sousa_li.append([self.whoturn, "kiru", hai])
                 
             # 鳴いた後の操作でない場合、立直・ツモ・カンができる
-            if self.previous_cmd[0] in ["kiru", "richi", "ankan", "kakan"]:
+            if self.previous_cmd[1] in ["kiru", "richi", "ankan", "kakan"]:
                 # 立直判定
                 if not Player.ifnaki(): # 鳴いていなければ聴牌判定に入る
                     for kiruhai in Player.menzen_li(): 
@@ -232,7 +232,7 @@ class Mahjong():
 
         elif sousa == "kakan": # 明槓   
             # 該当牌のインデックスの取得
-            for k_index, n in Player.tehai["naki"]:
+            for k_index, n in enumerate(Player.tehai["naki"]):
                 if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
                     Player.tehai["naki"][k_index].append([sousa_hai, self.whoturn])
             self.phase = Phase.WAIT_OTHERS
@@ -277,7 +277,7 @@ class Mahjong():
             self.phase = Phase.WAIT_SELF
             
         elif sousa == "chi": # チーの場合
-            sh_mps, sh_n = sousa_hai[0][0], int(sousa_hai[0][1])
+            sh_mps, sh_n = sousa_hai[0], int(sousa_hai[1])
             Player.kiru(f"{sh_mps}{sh_n+cmd[3]}")
             Player.kiru(f"{sh_mps}{sh_n+cmd[4]}")
             Player.tehai["naki"].append([
@@ -297,8 +297,6 @@ class Mahjong():
         # 最後にプレイヤーのツモ牌をNoneにし、誰のターンかを更新する
         Player.tehai["tumo"] = None
         self.whoturn = p_id
-        
-
 
     def tumo(self):
         self.whoturn = (self.whoturn + 1) % 4 # 下家にターンをゆずる
@@ -311,7 +309,8 @@ class Mahjong():
     def dbg(self):
         for P in self.players: printd(P.dbg())
 
-
+    def finish_kyoku():
+        printd("FINISHED")
 
     def step(self, cmd): # プレイヤー or AI の操作が必要になるまでゲームを進める
         # コマンドを実行する
@@ -344,11 +343,12 @@ class Mahjong():
 
             # 局が終わった
             if self.phase == Phase.ROUND_END:
-                self._finish_kyoku()   # 点棒移動・親流し・新局生成
+                self.finish_kyoku()   # 点棒移動・親流し・新局生成
                 return
 
             # 定義漏れ
             raise RuntimeError(f"未知フェーズ {self.phase}")
+
 
 import sys
 import pygame
