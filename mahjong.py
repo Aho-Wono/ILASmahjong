@@ -116,7 +116,7 @@ class Mahjong():
         printd("uradora:", dora_ura)
 
         info.edit("kancount", 0) # カンの初期化
-        self.whoturn = info.oya() # 誰が親かで最初にツモるひとを判定する (0~4)
+        self.whoturn = info.getoya() # 誰が親かで最初にツモるひとを判定する (0~4)
         
         self.phase = Phase.WAIT_SELF
         self.previous_cmd = [None, None, None]
