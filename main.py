@@ -66,8 +66,9 @@ while running: # ここがtkinterでいうとこのmainloop()
             wait_p_id = Game.wait_p_id       # Mahjong から直接読む
             printd(f"WAITING {wait_p_id}")
             cmd = None
+            
             if wait_p_id == MY_PID:
-                actions = Game.kyoku.get_capable_sousa(MY_PID)
+                actions = Game.get_capable_sousa(MY_PID)
                 cmd = click_to_cmd(ev.pos, actions)
 
     # ② ロジックを 1 フレーム進める
