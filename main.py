@@ -43,7 +43,7 @@ def draw(game):
         y += 30
 
     # 現在フェーズなど
-    info_tx = f"turn={game.whoturn}  phase={game.phase.name}"
+    info_tx = f"turn={game.whoturn},  phase={game.phase.name}, queue={game.queue}"
     info_surf = font.render(info_tx, True, (255, 255, 0))
     screen.blit(info_surf, (20, SCREEN_H - 40))
 
@@ -54,17 +54,20 @@ def loop_runner(loop):
 
 
 ai_q: queue.Queue = queue.Queue()
+
 loop = asyncio.new_event_loop()
 
 threading.Thread(target=loop_runner, args=(loop,), daemon=True).start()
 
 async def start_ai():
     # 1) 疑似思考ウェイト
+    what_ai_can_do = Game.get_capable_sousa_now()
+    printd("AI can do", what_ai_can_do)
     printd("START AI THINKING")
-    await asyncio.sleep(1) # とりま1秒待たせる
+    await asyncio.sleep(0.5) # とりま待たせる
+    AI_cmd = random.choice(what_ai_can_do)
     printd("FINISH AI THINKING")
 
-    AI_cmd = random.choice(Game.get_capable_sousa_now() + ["ignore", None, None])
     ai_q.put(AI_cmd)
 
     pygame.event.post(pygame.event.Event(AI_DONE))
@@ -91,22 +94,24 @@ while running: # ここがtkinterでいうとこのmainloop()
         if ev.type == pygame.QUIT:
             running = False
         elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
-            if Game.wait_p_id == MY_PID:
+            if Game.queue[0] == MY_PID:
+                printd("FINISH HUMAN THINKING")
                 actions = Game.get_capable_sousa_now()
                 # printd("actions:", actions)
                 cmd  = click_to_cmd(ev.pos, actions)
         elif ev.type == AI_DONE:      # ← コルーチン完了通知
             cmd = ai_q.get()
-            waiting_ai = False        # 思考完了
+            waiting_ai = False 
 
-    if Game.wait_p_id in AI_PIDS and not waiting_ai: # AIのターンでかつAIが起きてなかったときのみ実行される
-        launch_ai()
+    # AIを起こす
+    printd(waiting_ai)
+    if (not waiting_ai) and Game.queue[0] in AI_PIDS: # AIが起きてなくかつAIのターンであるとき
+        printd("LAUNCH AI")
         waiting_ai = True
-
-
+        launch_ai()
+            
     # ② ロジックを 1 フレーム進める
     Game.step(cmd)         # None なら自動進行だけ
-    printd(f"{Game.wait_p_id}", end=" ")
 
     # ③ 描画
     draw(Game)
