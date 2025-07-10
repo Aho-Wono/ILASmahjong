@@ -104,11 +104,12 @@ while running: # ここがtkinterでいうとこのmainloop()
             waiting_ai = False 
 
     # AIを起こす
-    printd(waiting_ai)
-    if (not waiting_ai) and Game.queue[0] in AI_PIDS: # AIが起きてなくかつAIのターンであるとき
-        printd("LAUNCH AI")
-        waiting_ai = True
-        launch_ai()
+    # printd(waiting_ai)
+    if Game.queue != []:
+        if (not waiting_ai) and Game.queue[0] in AI_PIDS and cmd == None: # AIが起きてなくかつAIのターンでかつcmdがNone=AIがまだ触ってないとき
+            printd("LAUNCH AI")
+            waiting_ai = True
+            launch_ai()
             
     # ② ロジックを 1 フレーム進める
     Game.step(cmd)         # None なら自動進行だけ
