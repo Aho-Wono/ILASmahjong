@@ -3,16 +3,16 @@ import pygame
 from mahjong import Mahjong
 from debug import printd
 import random
+import asyncio
+import threading
+import queue
 
-# ---------- 初期化 ----------
+# ---------- pygame 初期化 ----------
 pygame.init()
 SCREEN_W, SCREEN_H = 1024, 768
 screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 pygame.display.set_caption("Mahjong 1 Kyoku")
 clock = pygame.time.Clock()
-
-# 自分（ローカル）のプレイヤー ID　※今回は 0 固定
-
 
 def click_to_cmd(pos, actions):
     """
@@ -48,9 +48,39 @@ def draw(game):
     screen.blit(info_surf, (20, SCREEN_H - 40))
 
 
+def loop_runner(loop):
+    asyncio.set_event_loop(loop)  # このスレッドで `asyncio.get_event_loop()` が使える
+    loop.run_forever()            # coroutine が投げ込まれるまで待ち続ける
+
+
+ai_q: queue.Queue = queue.Queue()
+loop = asyncio.new_event_loop()
+
+threading.Thread(target=loop_runner, args=(loop,), daemon=True).start()
+
+async def start_ai():
+    # 1) 疑似思考ウェイト
+    printd("START AI THINKING")
+    await asyncio.sleep(1) # とりま1秒待たせる
+    printd("FINISH AI THINKING")
+
+    AI_cmd = random.choice(Game.get_capable_sousa_now() + ["ignore", None, None])
+    ai_q.put(AI_cmd)
+
+    pygame.event.post(pygame.event.Event(AI_DONE))
+
+def launch_ai():
+    asyncio.run_coroutine_threadsafe(start_ai(), loop)
+
+
+AI_DONE = pygame.USEREVENT + 1 
+clock = pygame.time.Clock()
 
 Game = Mahjong()
 MY_PID = 0
+AI_PIDS = [1,2,3]
+
+waiting_ai = False
 
 running = True
 while running: # ここがtkinterでいうとこのmainloop()
@@ -61,24 +91,28 @@ while running: # ここがtkinterでいうとこのmainloop()
         if ev.type == pygame.QUIT:
             running = False
         elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
-            # いま誰の入力待ち？
-            wait_p_id = Game.wait_p_id       # Mahjong から直接読む
-            printd(f"WAITING {wait_p_id}")
-            cmd = None
+            if Game.wait_p_id == MY_PID:
+                actions = Game.get_capable_sousa_now()
+                # printd("actions:", actions)
+                cmd  = click_to_cmd(ev.pos, actions)
+        elif ev.type == AI_DONE:      # ← コルーチン完了通知
+            cmd = ai_q.get()
+            waiting_ai = False        # 思考完了
 
-            if wait_p_id == MY_PID:
-                actions = Game.get_capable_sousa()
-                printd("actions:", actions)
-                cmd = click_to_cmd(ev.pos, actions)
+    if Game.wait_p_id in AI_PIDS and not waiting_ai: # AIのターンでかつAIが起きてなかったときのみ実行される
+        launch_ai()
+        waiting_ai = True
+
 
     # ② ロジックを 1 フレーム進める
     Game.step(cmd)         # None なら自動進行だけ
+    printd(f"{Game.wait_p_id}", end=" ")
 
     # ③ 描画
     draw(Game)
 
     pygame.display.flip()
-    pygame.time.Clock().tick(60)
+    clock.tick(60)
 
 pygame.quit()
 sys.exit()
