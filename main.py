@@ -6,10 +6,16 @@ import random
 import asyncio
 import threading
 import queue
+import getdir
+import ripai
+
+dir = getdir.dir()
+
 
 # ---------- pygame 初期化 ----------
 pygame.init()
-SCREEN_W, SCREEN_H = 1024, 768
+SCREEN_W, SCREEN_H = 950, 950
+C_X, C_Y = SCREEN_W/2, SCREEN_W/2
 screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 pygame.display.set_caption("Mahjong 1 Kyoku")
 clock = pygame.time.Clock()
@@ -27,22 +33,58 @@ def click_to_cmd(pos, actions):
         return None
     return random.choice(actions) # とりまRandomで返すべ…
 
+# ゲームコード → ファイル名 のマッピング
+hai_dir = f"{dir}/assets/hai/edited"
+hai_path = {
+    **{f"m{i}": f"{hai_dir}/m{i}.png"  for i in range(1, 10)},
+    **{f"p{i}": f"{hai_dir}/p{i}.png"  for i in range(1, 10)},
+    **{f"s{i}": f"{hai_dir}/s{i}.png"  for i in range(1, 10)},
+    "ton":  f"{hai_dir}/ton.png",
+    "nan":  f"{hai_dir}/nan.png",
+    "sha":  f"{hai_dir}/sha.png",
+    "pei":  f"{hai_dir}/pei.png",
+    "haku": f"{hai_dir}/haku.png",
+    "hatu": f"{hai_dir}/hatsu.png",
+    "chun": f"{hai_dir}/chun.png",
+    "back": f"{hai_dir}/Back.png",
+    "front": f"{hai_dir}/Front.png",
+}
+
+image_dic = {}
+shrink = 12
+for hai in hai_path:
+    raw_image = pygame.image.load(hai_path[hai]).convert_alpha()
+    image_dic[hai] = pygame.transform.scale(raw_image, (raw_image.get_width()/shrink, raw_image.get_height()/shrink))
+
+
+
+def draw_hai(hai, x, y): # 牌を描画する関数
+    front = image_dic["front"]
+    rect = front.get_rect(topleft=(x, y))
+    screen.blit(front, rect)
+
+    img = image_dic[hai]
+    rect = img.get_rect(topleft=(x, y))
+    screen.blit(img, rect) 
+
 def draw(game):
-    """
-    とりあえず盤情報をテキストで描画するスタブ。
-    本格実装では牌画像を blit してください。
-    """
     screen.fill((0, 96, 0))                      # 緑の卓
     font = pygame.font.SysFont(None, 24)
+    
+    # 描画していく
 
-    y = 20
-    for Player in game.players:
-        tx = Player.dbg()
-        txt = font.render(tx, True, (255, 255, 255))
-        screen.blit(txt, (20, y))
-        y += 30
+    # 自分の手牌を描画
+    # 面前牌を描画
+    x = C_X-400
+    for hai in ripai.ripai(game.players[MY_PID].tehai["menzen"]):    
+        x += 50
+        draw_hai(hai, x, C_Y+450-50)
+    
+    
 
-    # 現在フェーズなど
+
+
+    # デバッグ要素ゾ
     info_tx = f"turn={game.whoturn},  phase={game.phase.name}, queue={game.queue}"
     info_surf = font.render(info_tx, True, (255, 255, 0))
     screen.blit(info_surf, (20, SCREEN_H - 40))

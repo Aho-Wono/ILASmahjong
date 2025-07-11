@@ -280,10 +280,8 @@ class Mahjong():
                 self.queue = self.get_queue()
 
             elif sousa == "kiru": # 普通に切るとき
-                if self.previous_cmd[1] not in ["daiminkan", "pon", "chi"]: # 鳴き後に切るときは手牌に牌を追加しない 
-                    ttt = Player.tehai["tumo"]
-                    if ttt == None: printd("やべぇよやべぇよ…")
-                    Player.tehai["menzen"].append(ttt) # ここで一度14牌にし、ツモ切りにも対応する
+                if self.previous_cmd[1] not in ["daiminkan", "pon", "chi"]: # 鳴き後に切るときは手牌に牌を追加しない
+                    Player.tehai["menzen"].append(Player.tehai["tumo"]) # ここで一度14牌にし、ツモ切りにも対応する
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, False])
                 self.phase = Phase.WAIT_OTHERS
@@ -328,7 +326,7 @@ class Mahjong():
                 tumohai = random.choice(self.YAMA)
                 self.YAMA.remove(tumohai)
                 Player.tehai["tumo"] = tumohai
-                
+
                 self.phase = Phase.WAIT_SELF
                 self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
                 self.queue = [p_id]
