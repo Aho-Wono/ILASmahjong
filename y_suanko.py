@@ -1,0 +1,16 @@
+def y_suanko(PlayerInfo, menzen_pattern, agarihai):
+    if PlayerInfo.ifnaki():
+        return False
+    naki = PlayerInfo.tehai["naki"]
+    nakiseiri = []
+    for k in naki:
+        for l in range(len(k)):
+            k[l] = k[l][0]
+        nakiseiri.append(k)
+    tehaikari = menzen_pattern + nakiseiri
+    if len(tehaikari) == 7:
+        return False
+    for i in tehaikari:
+        if i[0] != i[1]:
+            return False
+    return "四暗刻"
