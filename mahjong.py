@@ -94,9 +94,9 @@ class Mahjong():
                 haipai.append(tumo)
             Player.tehai["menzen"] = haipai
 
-        if False: # デバッグ用
-            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split()
-            self.players[1].tehai["menzen"] = "p1 p1 p1 p2 p3 p4 p5 p6 p7 p8 p9 p9 p9".split()
+        if True: # デバッグ用
+            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m2 m2 m3 m3 m3 s1 m9 m9 m9".split()
+            self.players[1].tehai["menzen"] = "m1 m1 m1 m1 m1 m1 m1 m1 m1 m1 m1 m1 m1".split()
             self.players[2].tehai["menzen"] = "s1 s1 s1 s2 s3 s4 s5 s6 s7 s8 s9 s9 s9".split()
             self.players[3].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
 
