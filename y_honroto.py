@@ -6,7 +6,8 @@ def y_honroto(PlayerInfo, menzen_pattern, agarihai):
                 flag = False
             elif int(item[1]) != 1 and int(item[1]) != 9:
                 flag = False
-    for menz in menzen_pattern:
+    naki = PlayerInfo.tehai["naki"]
+    for menz in naki:
         for item in menz:
             if len(item[0]) != 2:
                 flag = False
