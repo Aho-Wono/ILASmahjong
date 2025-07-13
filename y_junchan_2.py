@@ -20,6 +20,6 @@ def y_junchan_2(PlayerInfo, menzen_pattern, agarihai):
                     flag_1 = True
         flag = flag_1
     if flag:
-        return "純全帯么九_3"
+        return "純全帯么九_2"
     else:
         return False
