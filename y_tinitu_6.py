@@ -9,6 +9,8 @@ def y_tinitu_6(PlayerInfo, menzen_pattern, agarihai):
             nakikari.append(k[l][0])
         nakiseiri.append(nakikari)
     tehaikari = menzen_pattern + nakiseiri
+    if len(tehaikari) == 7:
+        return False
     for i in tehaikari:
         if len(i[0]) != 2:
             return False
