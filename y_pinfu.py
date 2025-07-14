@@ -5,9 +5,10 @@ def y_pinfu(PlayerInfo, menzen_pattern, agarihai):
     naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
+        nakikari = []
         for l in range(len(k)):
-            k[l] = k[l][0]
-        nakiseiri.append(k)
+            nakikari.append(k[l][0])
+        nakiseiri.append(nakikari)
     tehaikari = menzen_pattern + nakiseiri
     kyoku = info.read()["kyoku"]
     player = PlayerInfo.playerid
