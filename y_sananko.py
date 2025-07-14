@@ -1,4 +1,7 @@
+import y_suanko
 def y_sananko(PlayerInfo, menzen_pattern, agarihai):
+    if y_suanko.y_suanko(PlayerInfo, menzen_pattern, agarihai):
+        return False
     if len(menzen_pattern) == 7:
         return False
     ank_n = 0

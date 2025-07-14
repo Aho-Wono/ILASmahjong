@@ -1,4 +1,7 @@
+import y_sukantu
 def y_sankantu(PlayerInfo, menzen_pattern, agarihai):
+    if y_sukantu.y_sukantu(PlayerInfo, menzen_pattern, agarihai):
+        return False
     naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
