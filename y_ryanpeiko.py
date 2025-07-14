@@ -9,7 +9,7 @@ def y_ryanpeiko(PlayerInfo, menzen_pattern, agarihai):
     #    for item in naki_i:
     #        if item[1] != flag:
     #            return False
-    if len(menzen_pattern) != 4:
+    if len(menzen_pattern) != 5:
         return False
     for permu in itertools.permutations(menzen_pattern, 4):
         if permu[0] == permu[1] and permu[2] == permu[3] and permu[1] != permu[2]:
