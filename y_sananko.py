@@ -3,7 +3,7 @@ def y_sananko(PlayerInfo, menzen_pattern, agarihai):
         return False
     ank_n = 0
     for menz in menzen_pattern:
-        if menz.count(menz[0]) == 3:
+        if menz[0] == menz[1] and menz[1] == menz[2]:
             ank_n += 1
     naki = PlayerInfo.tehai["naki"]
     for menz in naki:
