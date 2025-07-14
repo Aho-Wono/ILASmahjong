@@ -2,9 +2,10 @@ def y_syousangen(PlayerInfo, menzen_pattern, agarihai):
     naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
+        nakikari = []
         for l in range(len(k)):
-            k[l] = k[l][0]
-        nakiseiri.append(k)
+            nakikari.append(k[l][0])
+        nakiseiri.append(nakikari)
     tehaikari = menzen_pattern + nakiseiri
     kensa = []
     zyantouhantei = 0

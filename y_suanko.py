@@ -1,4 +1,6 @@
-def y_sukantu(PlayerInfo, menzen_pattern, agarihai):
+def y_suanko(PlayerInfo, menzen_pattern, agarihai):
+    if PlayerInfo.ifnaki():
+        return False
     naki = PlayerInfo.tehai["naki"]
     nakiseiri = []
     for k in naki:
@@ -7,11 +9,9 @@ def y_sukantu(PlayerInfo, menzen_pattern, agarihai):
             nakikari.append(k[l][0])
         nakiseiri.append(nakikari)
     tehaikari = menzen_pattern + nakiseiri
-    hantei = 0
-    for i in tehaikari:
-        if len(i) == 4:
-            hantei += 1
-    if hantei == 4:
-        return "四槓子"
-    else:
+    if len(tehaikari) == 7:
         return False
+    for i in tehaikari:
+        if i[0] != i[1]:
+            return False
+    return "四暗刻"
