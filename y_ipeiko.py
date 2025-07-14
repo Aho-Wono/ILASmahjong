@@ -1,6 +1,8 @@
 import itertools
 import y_ryanpeiko
 def y_ipeiko(PlayerInfo, menzen_pattern, agarihai):
+    if y_ryanpeiko.y_ryanpeiko(PlayerInfo, menzen_pattern, agarihai):
+        return False
     naki = PlayerInfo.tehai["naki"]
     if len(menzen_pattern) == 7:
         return False

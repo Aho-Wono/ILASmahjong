@@ -1,4 +1,8 @@
+import y_honroto
+import y_junchan_2
 def y_chanta_1(PlayerInfo, menzen_pattern, agarihai):
+    if y_honroto.y_honroto(PlayerInfo, menzen_pattern, agarihai) or y_junchan_2.y_junchan_2(PlayerInfo, menzen_pattern, agarihai):
+        return False
     if not PlayerInfo.ifnaki():
         return False
     if len(menzen_pattern) == 7:
