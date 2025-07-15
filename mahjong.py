@@ -57,6 +57,9 @@ class PlayerInfo:
         return f'{"_".join(ripai.ripai(self.tehai["menzen"]))} [{self.tehai["tumo"]}] {nakitx} \n {kawatx}'
     
     def kiru(self, hai):
+        if self.tehai["tumo"] != None: #ツモ牌があれば面前に加えてから切る
+            self.tehai["menzen"].append(self.tehai["tumo"])
+            self.tehai["tumo"] = None
         self.tehai["menzen"].remove(hai)
 
 
@@ -94,11 +97,8 @@ class Mahjong():
                 haipai.append(tumo)
             Player.tehai["menzen"] = haipai
 
-        if True: # デバッグ用
-            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m2 m2 m3 m3 m3 s1 m9 m9 m9".split()
-            self.players[1].tehai["menzen"] = "m1 m1 m1 m1 m1 m1 m1 m1 m1 m1 m1 m1 m1".split()
-            self.players[2].tehai["menzen"] = "s1 s1 s1 s2 s3 s4 s5 s6 s7 s8 s9 s9 s9".split()
-            self.players[3].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
+        if True:
+            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m2 m2 m3 m3 m3 m4 m4 m4 m1".split()
 
         # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
         dora_omote = []
@@ -118,18 +118,23 @@ class Mahjong():
         info.edit("kancount", 0) # カンの初期化
         self.whoturn = info.getoya() # 誰が親かで最初にツモるひとを判定する (0~4)
         
-        self.phase = Phase.WAIT_SELF
-        self.previous_cmd = [None, "kiru", None]
-        self.agari_data = [] # その局でだれが何をアガるかの変数
-
 
         # 親に1牌ツモらせる
         oya_id = info.getoya()
+        self.whoturn = oya_id - 1 # ひとつ下家のIDにしておく
+    
+        # ツモらせる操作
+        self.whoturn = oya_id # カンのあとでなければ下家にターンをゆずる
         tumohai = random.choice(self.YAMA)
         self.YAMA.remove(tumohai)
-        self.players[oya_id].tehai["tumo"] = tumohai
-        self.queue = [oya_id]
+        self.players[self.whoturn].tehai["tumo"] = tumohai
 
+        self.phase = Phase.WAIT_SELF
+        self.previous_cmd = [None, "kiru", None]
+        self.agari_data = [] # その局でだれが何をアガるかの変数
+        
+        self.queue = [oya_id]
+        self.capable_sousa_now = self.get_capable_sousa_now()
 
     def get_capable_sousa(self):
         #printd("check capable_sousa, phase=", self.phase)
@@ -140,7 +145,8 @@ class Mahjong():
             Player = self.players[self.whoturn] # 対象プレイヤーを指定
             
             # 何切る問題はいずれの状態でも可能
-            for hai in Player.menzen_li():
+            mzl = ripai.ripai(Player.menzen_li())
+            for hai in mzl:
                 kiru_cmd = [self.whoturn, "kiru", hai]
                 if kiru_cmd not in capable_sousa_li:
                     capable_sousa_li.append(kiru_cmd)
@@ -215,7 +221,7 @@ class Mahjong():
             capable_sousa_li = [csl for csl in capable_sousa_li if csl[0] == capable_sousa_li[0][0]]
         
         return capable_sousa_li
-   
+    
     def get_queue(self):
         id_li = [gcs[0] for gcs in self.get_capable_sousa()]
         del_index_li = []
@@ -230,12 +236,15 @@ class Mahjong():
         return id_li
 
     def get_capable_sousa_now(self):
-        queue = self.get_queue()[0]
-        csl = self.get_capable_sousa()
-        csl_n = [cs for cs in csl if cs[0] == queue] 
-        if self.phase == Phase.WAIT_OTHERS and csl_n != []:
-            csl_n.append([queue, "ignore", None])
-        return csl_n
+        if self.queue == []:
+            return None
+        else:
+            queue = self.queue[0]
+            csl = self.get_capable_sousa()
+            csl_n = [cs for cs in csl if cs[0] == queue] 
+            if self.phase == Phase.WAIT_OTHERS and csl_n != []:
+                csl_n.append([queue, "ignore", None])
+            return csl_n
 
     def do_cmd(self, cmd): # ダブロン・トリロンに対応するためcmdはリストにしている
 
@@ -245,7 +254,6 @@ class Mahjong():
         # 何かしら操作が行われた場合
         print("do cmd:", cmd)
         
-        
         p_id = int(cmd[0])
         Player = self.players[p_id]
         sousa = cmd[1]
@@ -253,56 +261,35 @@ class Mahjong():
 
         # 選択された操作に基づいて処理を行う
         if sousa == "ignore": # 鳴ける・ロンできるのに無視した場合
-            self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-            self.queue.pop(0) # キューをひとつ削除
-
-            if self.queue == []: # もう誰も待機勢がいなくなったら
-                self.phase = Phase.NEED_DRAW
-            else:
-                self.phase = Phase.WAIT_OTHERS
-        
+            pass
         else: # 何かしらの操作が発生する場合
             if sousa == "ankan": # 暗槓
                 for i in range(4):  Player.kiru(sousa_hai)
                 Player.tehai["naki"].append([[sousa_hai, self.whoturn] for i in range(4)])
-                self.phase = Phase.WAIT_OTHERS
-                self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-                self.queue = self.get_queue()
+                info.edit("kancount", info.read()["kancount"] + 1)
                 
-
             elif sousa == "kakan": # 明槓   
                 # 該当牌のインデックスの取得
                 for k_index, n in enumerate(Player.tehai["naki"]):
                     if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
                         Player.tehai["naki"][k_index].append([sousa_hai, self.whoturn])
-                self.phase = Phase.WAIT_OTHERS
-                self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-                self.queue = self.get_queue()
+                info.edit("kancount", info.read()["kancount"] + 1)
 
             elif sousa == "kiru": # 普通に切るとき
-                if self.previous_cmd[1] not in ["daiminkan", "pon", "chi"]: # 鳴き後に切るときは手牌に牌を追加しない
-                    Player.tehai["menzen"].append(Player.tehai["tumo"]) # ここで一度14牌にし、ツモ切りにも対応する
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, False])
-                self.phase = Phase.WAIT_OTHERS
-                self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-                self.queue = self.get_queue()
 
             elif sousa == "richi": # 立直
                 Player.tehai["menzen"].append(Player.tehai["tumo"])
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, True])
-                self.phase = Phase.WAIT_OTHERS
-                self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-                self.queue = self.get_queue()
-            
+                
             elif sousa == "tumo": # ツモ和了
                 self.agari_data.append({
                     "whoagari": self.whoturn,
                     "whoagarare": None,
                     "tehai": Player.tehai,
                     "yaku":  yaku.best_yaku(Player, Player.tehai["tumo"], self.previous_cmd[1]), })
-                self.phase = Phase.ROUND_END
 
             elif sousa == "pon": # ポンの場合
                 for i in range(2): Player.kiru(sousa_hai)
@@ -310,9 +297,6 @@ class Mahjong():
                     [sousa_hai, p_id],
                     [sousa_hai, p_id],
                     [sousa_hai, self.whoturn],])
-                self.phase = Phase.WAIT_SELF
-                self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-                self.queue = [p_id]
                 
             elif sousa == "daiminkan": # カンの場合
                 for i in range(3): Player.kiru(sousa_hai)
@@ -321,16 +305,13 @@ class Mahjong():
                     [sousa_hai, p_id],
                     [sousa_hai, p_id],
                     [sousa_hai, self.whoturn],])
-                info.edit("kancount", info.read()["kancount"] + 1)
-
+                
                 tumohai = random.choice(self.YAMA)
                 self.YAMA.remove(tumohai)
                 Player.tehai["tumo"] = tumohai
-
-                self.phase = Phase.WAIT_SELF
-                self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-                self.queue = [p_id]
                 
+                info.edit("kancount", info.read()["kancount"] + 1)
+
             elif sousa == "chi": # チーの場合
                 sh_mps, sh_n = sousa_hai[0], int(sousa_hai[1])
                 ch_1 = f"{sh_mps}{sh_n+cmd[3]}"
@@ -341,9 +322,6 @@ class Mahjong():
                     [ch_1, p_id],
                     [ch_2, p_id],
                     [sousa_hai[0], self.whoturn],])
-                self.phase = Phase.WAIT_SELF
-                self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
-                self.queue = [p_id]
                 
             elif sousa == "ron": # ロン和了
                 self.agari_data.append({
@@ -351,27 +329,45 @@ class Mahjong():
                     "whoagarare": self.whoturn,
                     "tehai": Player.tehai,
                     "yaku":  yaku.best_yaku(Player, sousa_hai, sousa), })
-                self.phase = Phase.ROUND_END
 
-            # 最後にプレイヤーのツモ牌をNoneにし、誰のターンかを更新する
-            Player.tehai["tumo"] = None
-            self.whoturn = p_id
-            
+        # フェーズ・キューの更新
+        if sousa == "ignore":
+            self.queue.pop(0) # キューをひとつ削除
+            if self.queue == []: # もう誰も待機勢がいなくなったら
+                self.phase = Phase.NEED_DRAW
+            else:
+                self.phase = Phase.WAIT_OTHERS
+            self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
+        else:
+            # 何かしらの操作が発生している場合
+            if sousa != "daiminkan":
+                Player.tehai["tumo"] = None # 操作を行ったプレイヤーのツモ牌をNoneにする
+            self.whoturn = p_id # 誰のターンかを更新する
+            self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
+
+            if sousa in ["ron", "tumo"]:
+                self.phase = Phase.ROUND_END
+                self.queue = []
+                self.capable_sousa_now = [] # csnの更新
+            elif sousa in ["ankan", "kakan", "kiru", "richi"]:
+                self.phase = Phase.WAIT_OTHERS
+                self.queue = self.get_queue()
+                self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
+            elif sousa in ["pon", "chi", "daiminkan"]:
+                self.phase = Phase.WAIT_SELF
+                self.queue = [p_id] # ポンとかチーとかした人にアクセス権を移す
+                self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
+                self.whoturn = p_id
+            else:
+                raise Exception("do_cmd() coudn't find cmd")
+
         printd(self.dbg())
 
-
-    def tumo(self):
-        self.whoturn = (self.whoturn + 1) % 4 # 下家にターンをゆずる
-        Player = self.players[self.whoturn]
-
-        tumohai = random.choice(self.YAMA)
-        self.YAMA.remove(tumohai)
-        Player.tehai["tumo"] = tumohai
-    
     def dbg(self):
         return "\n".join([P.dbg() for P in self.players])
 
     def finish_kyoku(self):
+        # 未作成！！！
         printd("FINISHED")
 
     def step(self, cmd): # プレイヤー or AI の操作が必要になるまでゲームを進める
@@ -382,19 +378,28 @@ class Mahjong():
         while True:
             # ツモが必要
             if self.phase == Phase.NEED_DRAW:
-                self.tumo()              # ← 山.pop() して phase を WAIT_SELF に
-                self.phase = Phase.WAIT_SELF
-                self.queue = [self.whoturn]
-                continue               # ループ先頭へ
+                # ツモらせる操作
+                if self.previous_cmd[1] not in ["ankan", "kakan"]:
+                    self.whoturn = (self.whoturn + 1) % 4 # カンのあとでなければ下家にターンをゆずる
+
+                tumohai = random.choice(self.YAMA)
+                self.YAMA.remove(tumohai)
+                self.players[self.whoturn].tehai["tumo"] = tumohai
+                printd(f"{'-'*30} {self.whoturn} tumo {tumohai}")
+
+                self.phase = Phase.WAIT_SELF # フェーズの更新
+                self.queue = [self.whoturn] # キューの更新
+                self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
+
+                continue
                 
             # 他家ロン／鳴き優先度決定処理
             if self.phase == Phase.WAIT_OTHERS:
-                queue = self.queue
-                if queue == []:
+                if self.queue == []:
                     self.phase = Phase.NEED_DRAW  
                     continue
                 
-                elif queue != []: # 他家の選択余地あり　→　一旦 UI へ制御返す
+                elif self.queue != []: # 他家の選択余地あり　→　一旦 UI へ制御返す
                     return 
 
             # 誰かの打牌待ち → 一旦 UI へ制御返す

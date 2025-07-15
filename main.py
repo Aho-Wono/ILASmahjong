@@ -21,20 +21,14 @@ screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 pygame.display.set_caption("Mahjong 1 Kyoku")
 clock = pygame.time.Clock()
 
-def click_to_cmd(pos, actions):
-    """
-    クリック座標 → Cmd へ変換するダミー関数
-    実装例:
-        1) 画面下部の手牌エリアを矩形で決め打ち
-        2) 押された牌 index を計算
-        3) actions から該当する 'kiru' を返す
-    ここでは一番先頭の行動をそのまま返す簡易版
-    """
-    if not actions:
-        return None
-    return random.choice(actions) # とりまRandomで返すべ…
 
-# ゲームコード → ファイル名 のマッピング
+input_active = False        # クリックで欄をアクティブにする例
+buffer       = ""           # 入力中の文字列
+done_lines   = []           # Enter確定済みの行を溜める
+
+input_rect = pygame.Rect(40, 150, 560, 40)   # 入力欄の位置・サイズ
+
+# 牌画像を読み込む
 hai_dir = f"{dir}/assets/hai/edited"
 hai_path = {
     **{f"m{i}": f"{hai_dir}/m{i}.png"  for i in range(1, 10)},
@@ -50,127 +44,177 @@ hai_path = {
     "back": f"{hai_dir}/Back.png",
     "front": f"{hai_dir}/Front.png",
 }
-
 image_dic = {}
-shrink = 12
+shrink = 15
+H_Y = 800/shrink # 描画する牌の横の長さ
+H_X = 600/shrink # 描画する牌の縦の長さ
+H_XY = H_Y-H_X
+H_G = 10 # 描画する牌の隙間
+
 for hai in hai_path:
     raw_image = pygame.image.load(hai_path[hai]).convert_alpha()
     image_dic[hai] = pygame.transform.scale(raw_image, (raw_image.get_width()/shrink, raw_image.get_height()/shrink))
 
+# pygameで使ういろんな変数をここで定義する
+WHITE = (255, 255, 255)
+BLACK = (  0,   0,   0)
+RED   = (255,   0,   0)
+YELLOW = (255, 255, 0)
+TAKU = (0, 96, 0)
+RIGHT = (0, 96*3/2, 0)
+
+font = pygame.font.SysFont(None, 24)
+cmd_font = pygame.font.SysFont(None, 30)
 
 
-def draw_hai(hai, x, y, rotate=0, rotate_all=0): # 牌を描画する関数
+def draw_hai(hai, x, y, rotate=0): # 牌を描画する関数
     # XY軸をどの向きに設定するかで変換する
     theta = math.radians(rotate_all)
-    x = x*math.cos(theta) - y*math.sin(theta)
-    y = x*math.sin(theta) + y*math.cos(theta)
+    x_converted = C_X + (x - C_X) * math.cos(theta) + (y - C_Y) * math.sin(theta)
+    y_converted = C_Y - (x - C_X) * math.sin(theta) + (y - C_Y) * math.cos(theta)
+
     rotate += rotate_all
     
-    
-    # 背景の描画
-    front = image_dic["front"]
-    front =  pygame.transform.rotate(front, rotate) 
-    rect = front.get_rect(topleft=(x, y))
-    screen.blit(front, rect)
+    anchor_by_rot = {
+        0:   "topleft",
+        90:  "bottomleft",
+        180: "bottomright",
+        270: "topright",
+    }
+
+    if hai != "back": # 牌裏牌でない限り背景を描画
+        # 背景の描画
+        front = image_dic["front"]
+        front =  pygame.transform.rotate(front, rotate)
+        rect = front.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
+        screen.blit(front, rect)
 
     # 牌の描画
     img = image_dic[hai]
     img = pygame.transform.rotate(img, rotate)
-    rect = img.get_rect(topleft=(x, y))
+    rect = img.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
     screen.blit(img, rect) 
 
 
-def draw_players(Player):
-    # 面前牌を描画
-    x = C_X-400-50
-    pid = Player.playerid
-    for hai in ripai.ripai(Player.tehai["menzen"]):    
-        x += 50
-        draw_hai(hai, x, C_Y+400)
-        
-    # ツモ牌を描画
-    tumohai = Player.tehai["tumo"]
-    if tumohai != None:
-        draw_hai(hai, x-50+110, C_Y+400)
-    x = C_X+450
+def draw_players():
+    global rotate_all
+    
 
-    # 鳴いた牌を描画
-    for naki_li in Player.tehai["naki"]:
-        for naki in naki_li:
+    for i in [0,1,2,3]:
+        rotate_all = [0, 90, 180, 270][i]
+        pid = (MY_PID+i)%4
+        Player = Game.players[pid]
+
+        # 面前牌を描画
+        x = (SCREEN_H-(C_Y+400)-H_Y) + H_X*2 + H_G
+        for hai in ripai.ripai(Player.tehai["menzen"]):    
+            draw_hai(hai, x, C_Y+400)
+            x += H_X
+            
+        # ツモ牌を描画
+        tumohai = Player.tehai["tumo"]
+        if tumohai != None:
+            draw_hai(tumohai, x+H_G, C_Y+400)
+        
+        x = SCREEN_H - (SCREEN_H-(C_Y+400)-H_Y + 1) # この１はピクセル調整
+
+        # 鳴いた牌を描画
+        for naki in Player.tehai["naki"]:
             if len(naki) == 4: # カンのとき
-                printd("カンを描画")
                 hai = naki[0][0]
                 
                 if [n[1] for n in naki].count(pid) == 4: # 暗槓                  
-                    draw_hai("back", x-50*1, C_Y+400)
-                    draw_hai(hai, x-50*2, C_Y+400)
-                    draw_hai(hai, x-50*3, C_Y+400)
-                    draw_hai("back", x-50*4, C_Y+400)
-                    x -= 210
+                    draw_hai("back", x-H_X*1, C_Y+400)
+                    draw_hai(hai, x-H_X*2, C_Y+400)
+                    draw_hai(hai, x-H_X*3, C_Y+400)
+                    draw_hai("back", x-H_X*4, C_Y+400)
+                    x -= H_X*4 + H_G
                 
                 else:
                     if naki[3][1] != pid: # 大明槓
                         fromwho = naki[3][1]
                         if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
-                            draw_hai(hai, x-67, C_Y+400-17)
-                            draw_hai(hai, x-67-50*1, C_Y+400)
-                            draw_hai(hai, x-67-50*2, C_Y+400)
-                            draw_hai(hai, x-67-50*3, C_Y+400)
+                            draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_Y-H_X*1, C_Y+400)
+                            draw_hai(hai, x-H_Y-H_X*2, C_Y+400)
+                            draw_hai(hai, x-H_Y-H_X*3, C_Y+400)
                         elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
-                            draw_hai(hai, x-50, C_Y+400-17)
-                            draw_hai(hai, x-50-67, C_Y+400)
-                            draw_hai(hai, x-50-67-50, C_Y+400)
-                            draw_hai(hai, x-50-67-50-50, C_Y+400)
-                        elif (fromwho-pid)%4 == 2: # 下家から鳴いていた場合
-                            draw_hai(hai, x-50, C_Y+400-17)
-                            draw_hai(hai, x-50-50, C_Y+400)
-                            draw_hai(hai, x-50-50-50, C_Y+400)
-                            draw_hai(hai, x-50-50-50-67, C_Y+400)
-                        x -= 227
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_Y-H_X-H_X, C_Y+400)
+                        elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                        x -= H_Y + H_X*3 + H_G
+                            
                     elif naki[3][1] != pid: # 加槓
                         fromwho = naki[2][1]
                         mod4 = (fromwho-pid)%4
                         if mod4 == 1: # 上家から鳴いていた場合
-                            draw_hai(hai, x-67, C_Y+400-17)
-                            draw_hai(hai, x-67, C_Y+400-17+50)
-                            draw_hai(hai, x-67-50, C_Y+400)
-                            draw_hai(hai, x-67-50-50, C_Y+400)
+                            draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_Y, C_Y+400+H_XY+H_X, rotate=90)
+                            draw_hai(hai, x-H_Y-H_X, C_Y+400)
+                            draw_hai(hai, x-H_Y-H_X-H_X, C_Y+400)
                         elif mod4 == 2: # 対面から鳴いていた場合
-                            draw_hai(hai, x-50, C_Y+400)
-                            draw_hai(hai, x-50-67, C_Y+400-17)
-                            draw_hai(hai, x-50-67, C_Y+400-17+50)
-                            draw_hai(hai, x-50-67-50, C_Y+400)
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
+                            draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
                         elif mod4 == 3: # 下家から鳴いていた場合
-                            draw_hai(hai, x-50, C_Y+400)
-                            draw_hai(hai, x-50-50, C_Y+400)
-                            draw_hai(hai, x-50-50-67, C_Y+400-17)
-                            draw_hai(hai, x-50-50-67, C_Y+400-17+50)
-                        x -= 177
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
+                        x -= H_Y + H_X*2 + H_G
 
 
 
-def draw(game):
-    screen.fill((0, 96, 0))                      # 緑の卓
-    font = pygame.font.SysFont(None, 24)
+def click_to_cmd(pos):
+    # クリックした座標からコマンドを返すイメージ
+    for rect, cmd in clickmap:
+        if rect.collidepoint(pos):
+            return cmd
+    return None
+
+clickmap = []
+
+def draw(Game: Mahjong):
+    screen.fill(TAKU)      # 緑の卓
+    pygame.draw.rect(screen, RIGHT, (SCREEN_H, 0, 300, SCREEN_H))
+
+    # クリックマップを作製
+    global clickmap
+    clickmap = []
     
-    # 描画していく
-
-    # 自分の手牌を描画
-    ME = game.players[MY_PID]
-    draw_players(ME)
-                
-            
-            
-    # デバッグ要素（？）
-
+    # 牌を描画する
+    draw_players()
+    
     # デバッグ要素ゾ
-    info_tx = f"turn={game.whoturn},  phase={game.phase.name}, queue={game.queue}"
-    info_surf = font.render(info_tx, True, (255, 255, 0))
-    screen.blit(info_surf, (20, SCREEN_H - 40))
+    info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, capable_sousa_now={Game.capable_sousa_now}"
+    info_surf = font.render(info_tx, True, YELLOW)
+    screen.blit(info_surf, (20, 20))
+
     
-    csl = f"{game.get_capable_sousa_now()}"
-    csl_surf = font.render(csl, True, (255,255,0))
-    screen.blit(csl_surf, (1000, 50))
+    # 可能なコマンドを箇条書きで描画する
+    y = 30
+    if Game.queue != []:
+        if Game.queue[0] == MY_PID: # 自分のときしか描画しないお！
+            for i in Game.capable_sousa_now:
+
+                rect = pygame.draw.rect(screen, WHITE, (SCREEN_H + 30, y+1, 300-30*2, 28))
+                clickmap.append((rect, i)) # クリックマップに登録
+
+                #csn_surf = cmd_font.render("  ".join(i[1:]), True, BLACK,)
+                csn_surf = cmd_font.render(f"{i}", True, BLACK,)
+                
+                rect      = csn_surf.get_rect()   # ① まだ原点 (0,0)
+                rect.center = (SCREEN_H + 150, y+15)
+                screen.blit(csn_surf, rect)
+                y += 30
+
 
 def loop_runner(loop):
     asyncio.set_event_loop(loop)  # このスレッドで `asyncio.get_event_loop()` が使える
@@ -185,7 +229,7 @@ threading.Thread(target=loop_runner, args=(loop,), daemon=True).start()
 
 async def start_ai():
     # 1) 疑似思考ウェイト
-    what_ai_can_do = Game.get_capable_sousa_now()
+    what_ai_can_do = Game.capable_sousa_now
     printd("AI can do", what_ai_can_do)
     printd("START AI THINKING")
     await asyncio.sleep(0.5) # とりま待たせる
@@ -204,6 +248,7 @@ AI_DONE = pygame.USEREVENT + 1
 clock = pygame.time.Clock()
 
 Game = Mahjong()
+
 MY_PID = 0
 AI_PIDS = [1,2,3]
 
@@ -217,24 +262,20 @@ while running: # ここがtkinterでいうとこのmainloop()
     for ev in pygame.event.get():
         if ev.type == pygame.QUIT:
             running = False
-        elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
-            if Game.queue[0] == MY_PID:
-                printd("FINISH HUMAN THINKING")
-                actions = Game.get_capable_sousa_now()
-                # printd("actions:", actions)
-                cmd  = click_to_cmd(ev.pos, actions)
         elif ev.type == AI_DONE:      # ← コルーチン完了通知
             cmd = ai_q.get()
             waiting_ai = False 
+        elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # マウスのクリックを取得する
+            cmd = click_to_cmd(ev.pos)
+            print(cmd)
 
     # AIを起こす
-    # printd(waiting_ai)
     if Game.queue != []:
         if (not waiting_ai) and Game.queue[0] in AI_PIDS and cmd == None: # AIが起きてなくかつAIのターンでかつcmdがNone=AIがまだ触ってないとき
             printd("LAUNCH AI")
             waiting_ai = True
             launch_ai()
-            
+
     # ② ロジックを 1 フレーム進める
     Game.step(cmd)         # None なら自動進行だけ
 
@@ -242,7 +283,7 @@ while running: # ここがtkinterでいうとこのmainloop()
     draw(Game)
 
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(30)
 
 pygame.quit()
 sys.exit()
