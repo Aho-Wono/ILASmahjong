@@ -1,11 +1,5 @@
-import ifagari
-import info
-import ripai
-import random
-from debug import printd
-from debug import printc
-import yaku
 from enum import Enum, auto
+
 class Phase(Enum): # ゲームのMAP値を定義
     NEED_DRAW    = auto() # 新しい手番が来た直後
     WAIT_SELF    = auto() # ツモ直後／副露後
@@ -62,6 +56,13 @@ class PlayerInfo:
             self.tehai["tumo"] = None
         self.tehai["menzen"].remove(hai)
 
+import ifagari
+import info
+import ripai
+import random
+from debug import printd
+from debug import printc
+import yaku
 
 class Mahjong():
     ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()

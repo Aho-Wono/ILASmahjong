@@ -196,7 +196,7 @@ if True:
     tehai = 'm1 m1 m1 p2 p3 p4 s5 s6 s7 ton ton ton pei pei'.split()
 
     tehai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun ton".split()
-    debug.printd(f"mentsu_patterns: {mentsu_pattern(tehai=tehai)}")
+    #debug.printd(f"mentsu_patterns: {mentsu_pattern(tehai=tehai)}")
 
 
 

@@ -93,10 +93,8 @@ def teyaku_li():
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
 
-yaku_debug_mode = False
-
 def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
-    if yaku_debug_mode:
+    if False:
         print(*args, sep=sep, end=end, file=file, flush=flush)
 
 
@@ -217,52 +215,8 @@ def best_yaku(PlayerInfo, agarihai, sousa):
     return max_yp
     # 未作成！
 
-if False:
-    class PlayerInfo:
-      def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
-        self.playerid = playerid # プレイヤー名 
-        self.tehai = tehai # 手牌の情報
-        self.kawa = kawa # 河の情報
-
-    # そいつが現在立直しているかどうかの判定
-      def ifrichi(self):
-        result = False
-        for s in self.kawa:
-            if s[1]: result = True
-        return result
-
-    # そいつが現在鳴いているかどうかの判定
-      def ifnaki(self):            
-        result = False
-        for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらTrue
-            fromwho_li = [nn[1] for nn in n]
-            for f in fromwho_li:
-                if f != fromwho_li: result = True
-        return result
-    
-      def menzen_li(self):
-        if self.tehai["tumo"] != None:
-            return self.tehai["menzen"] + [self.tehai["tumo"]]
-        else:
-            return self.tehai["menzen"] 
-    
-      def dbg(self):
-        nakitx = ""
-        for i in self.tehai["naki"]:
-            for ii in i: 
-                if ii[1] == self.playerid: nakitx += f" {ii[0]}"
-                else:                      nakitx += f" {ii[0]}'"
-
-        kawatx = ""
-        for i in self.kawa:
-            if i[1]: kawatx += "_" + i[0] + " "
-            else:    kawatx += i[0] + " "
- 
-        return f"{"_".join(ripai.ripai(self.tehai["menzen"]))} [{self.tehai["tumo"]}] {nakitx} \n {kawatx}"
-    
-      def kiru(self, hai):
-        self.tehai["menzen"].remove(hai)
-
+if __name__ == "__main__":
+    from mahjong import PlayerInfo
 
     TestPlayer = PlayerInfo(
         playerid= 0, # ← 0が親
@@ -282,14 +236,12 @@ if False:
         #["m2 m2 m3 m3 m4 m4 m5 m5 m6 m6 m7 m8 m8".split(), [], "m7", "m7"],    
     ]
 
-    yaku_debug_mode = False
-
+    debug.printd(debug_patterns)
     for i, dp in enumerate(debug_patterns):
         TestPlayer.tehai["menzen"] = dp[0]
         TestPlayer.tehai["naki"] = dp[1]
         TestPlayer.tehai["tumo"] = dp[2]
         ag = dp[3]
 
-        yaku_printd(f"[ {i+1} ]","="*100)
-
-        yaku_printd(yaku(PlayerInfo= TestPlayer, agarihai=ag))
+        debug.printd(f"[ {i+1} ]","="*100)
+        debug.printd(yaku(PlayerInfo= TestPlayer, agarihai=ag))
