@@ -1,19 +1,19 @@
 {
     "kyoku": "t1",
     "hon": 0,
-    "kancount": 1,
+    "kancount": 0,
     "dora_omote": [
-        "hatu",
-        "p7",
-        "p6",
-        "hatu",
-        "ton"
+        "m4",
+        "m9",
+        "sha",
+        "pei",
+        "s7"
     ],
     "dora_ura": [
-        "s8",
-        "p3",
-        "m7",
-        "s2",
-        "s5"
+        "p6",
+        "p7",
+        "m3",
+        "m2",
+        "sha"
     ]
 }

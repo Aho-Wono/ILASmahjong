@@ -321,7 +321,7 @@ class Mahjong():
                 Player.tehai["naki"].append([
                     [ch_1, p_id],
                     [ch_2, p_id],
-                    [sousa_hai[0], self.whoturn],])
+                    [sousa_hai, self.whoturn],])
                 
             elif sousa == "ron": # ロン和了
                 self.agari_data.append({

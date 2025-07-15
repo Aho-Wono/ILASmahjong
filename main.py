@@ -169,8 +169,39 @@ def draw_players():
                             draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
                             draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
                         x -= H_Y + H_X*2 + H_G
-
-
+            elif len(naki) == 3 and [n[0] for n in naki].count(naki[0][0]) == 3: # ポンのとき
+                fromwho = naki[2][1]
+                if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                    draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai, x-H_Y-H_X*1, C_Y+400)
+                    draw_hai(hai, x-H_Y-H_X*2, C_Y+400)
+                elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                    draw_hai(hai, x-H_X, C_Y+400)
+                    draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
+                elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                    draw_hai(hai, x-H_X, C_Y+400)
+                    draw_hai(hai, x-H_X-H_X, C_Y+400)
+                    draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                x -= H_Y + H_X*2 + H_G
+            else: # チーのとき
+                printd("chi!", naki)
+                hai_1 = naki[0][0]
+                hai_2 = naki[1][0]
+                hai_3 = naki[2][0]
+                fromwho = naki[2][1]
+                if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                    draw_hai(hai_3, x-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai_2, x-H_Y-H_X*1, C_Y+400)
+                    draw_hai(hai_1, x-H_Y-H_X*2, C_Y+400)
+                elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                    draw_hai(hai_2, x-H_X, C_Y+400)
+                    draw_hai(hai_3, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai_1, x-H_X-H_Y-H_X, C_Y+400)
+                elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                    draw_hai(hai_2, x-H_X, C_Y+400)
+                    draw_hai(hai_1, x-H_X-H_X, C_Y+400)
+                    draw_hai(hai_3, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
 
 def click_to_cmd(pos):
     # クリックした座標からコマンドを返すイメージ
