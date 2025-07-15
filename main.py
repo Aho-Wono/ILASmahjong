@@ -51,6 +51,8 @@ H_X = 600/shrink # 描画する牌の縦の長さ
 H_XY = H_Y-H_X
 H_G = 10 # 描画する牌の隙間
 
+FUCHI = (SCREEN_H-(C_Y+400)-H_Y)
+
 for hai in hai_path:
     raw_image = pygame.image.load(hai_path[hai]).convert_alpha()
     image_dic[hai] = pygame.transform.scale(raw_image, (raw_image.get_width()/shrink, raw_image.get_height()/shrink))
@@ -58,6 +60,7 @@ for hai in hai_path:
 # pygameで使ういろんな変数をここで定義する
 WHITE = (255, 255, 255)
 BLACK = (  0,   0,   0)
+GRAY = (30, 30, 30)
 RED   = (255,   0,   0)
 YELLOW = (255, 255, 0)
 TAKU = (0, 96, 0)
@@ -67,7 +70,7 @@ font = pygame.font.SysFont(None, 24)
 cmd_font = pygame.font.SysFont(None, 30)
 
 
-def draw_hai(hai, x, y, rotate=0): # 牌を描画する関数
+def draw_hai(hai, x, y, rotate=0, clm_mode = False): # 牌を描画する関数
     # XY軸をどの向きに設定するかで変換する
     theta = math.radians(rotate_all)
     x_converted = C_X + (x - C_X) * math.cos(theta) + (y - C_Y) * math.sin(theta)
@@ -93,7 +96,9 @@ def draw_hai(hai, x, y, rotate=0): # 牌を描画する関数
     img = image_dic[hai]
     img = pygame.transform.rotate(img, rotate)
     rect = img.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
-    screen.blit(img, rect) 
+    screen.blit(img, rect)
+    if clm_mode:
+        clickmap.append((rect, [MY_PID, "kiru", hai])) # クリックマップに登録 
 
 
 def draw_players():
@@ -104,19 +109,20 @@ def draw_players():
         rotate_all = [0, 90, 180, 270][i]
         pid = (MY_PID+i)%4
         Player = Game.players[pid]
+        clm_mode = True if i == 0 else False
 
         # 面前牌を描画
-        x = (SCREEN_H-(C_Y+400)-H_Y) + H_X*2 + H_G
+        x = FUCHI + H_X*2 + H_G
         for hai in ripai.ripai(Player.tehai["menzen"]):    
-            draw_hai(hai, x, C_Y+400)
+            draw_hai(hai, x, C_Y+400, clm_mode=clm_mode)
             x += H_X
             
         # ツモ牌を描画
         tumohai = Player.tehai["tumo"]
         if tumohai != None:
-            draw_hai(tumohai, x+H_G, C_Y+400)
+            draw_hai(tumohai, x+H_G, C_Y+400, clm_mode=clm_mode)
         
-        x = SCREEN_H - (SCREEN_H-(C_Y+400)-H_Y + 1) # この１はピクセル調整
+        x = SCREEN_H - (FUCHI + 1) # この１はピクセル調整
 
         # 鳴いた牌を描画
         for naki in Player.tehai["naki"]:
@@ -170,6 +176,7 @@ def draw_players():
                             draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
                         x -= H_Y + H_X*2 + H_G
             elif len(naki) == 3 and [n[0] for n in naki].count(naki[0][0]) == 3: # ポンのとき
+                hai = naki[0][0]
                 fromwho = naki[2][1]
                 if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
                     draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
@@ -185,7 +192,6 @@ def draw_players():
                     draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
                 x -= H_Y + H_X*2 + H_G
             else: # チーのとき
-                printd("chi!", naki)
                 hai_1 = naki[0][0]
                 hai_2 = naki[1][0]
                 hai_3 = naki[2][0]
@@ -202,6 +208,12 @@ def draw_players():
                     draw_hai(hai_2, x-H_X, C_Y+400)
                     draw_hai(hai_1, x-H_X-H_X, C_Y+400)
                     draw_hai(hai_3, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                x -= H_Y + H_X*2 + H_G
+
+        # 河を描画
+
+
+
 
 def click_to_cmd(pos):
     # クリックした座標からコマンドを返すイメージ
@@ -213,8 +225,13 @@ def click_to_cmd(pos):
 clickmap = []
 
 def draw(Game: Mahjong):
-    screen.fill(TAKU)      # 緑の卓
-    pygame.draw.rect(screen, RIGHT, (SCREEN_H, 0, 300, SCREEN_H))
+    # ステージの描画
+    pygame.draw.rect(screen, GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側
+    FUCHI_ = FUCHI-5
+    pygame.draw.rect(screen, TAKU, (FUCHI_, FUCHI_, SCREEN_H-FUCHI_*2, SCREEN_H-FUCHI_*2)) # 緑の卓
+    pygame.draw.rect(screen, RIGHT, (SCREEN_H, 0, 300, SCREEN_H)) # 右の操作画面
+    pygame.draw.rect(screen, RIGHT, (C_X-150, C_Y-150, 300, 300)) # 真ん中のやつ
+    
 
     # クリックマップを作製
     global clickmap
@@ -227,7 +244,6 @@ def draw(Game: Mahjong):
     info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, capable_sousa_now={Game.capable_sousa_now}"
     info_surf = font.render(info_tx, True, YELLOW)
     screen.blit(info_surf, (20, 20))
-
     
     # 可能なコマンドを箇条書きで描画する
     y = 30
