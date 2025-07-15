@@ -1,372 +1,336 @@
-import ifagari
-import info
-import ripai
-import random
+import sys
+import pygame
+from mahjong import Mahjong
 from debug import printd
-from debug import printc
-import yaku
+import random
+import asyncio
+import threading
+import queue
+import getdir
+import ripai
+import math
 
-ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
+dir = getdir.dir()
 
-# とりあえず1局まるまる遊べるようなものを作ります
-# プレイヤーの状況を包括するクラスを作成
-class PlayerInfo:
-    def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
-        self.playerid = playerid # プレイヤー名 
-        self.tehai = tehai # 手牌の情報
-        self.kawa = kawa # 河の情報
 
-    # そいつが現在立直しているかどうかの判定
-    def ifrichi(self):
-        result = False
-        for s in self.kawa:
-            if s[1]: result = True
-        return result
+# ---------- pygame 初期化 ----------
+pygame.init()
+SCREEN_W, SCREEN_H = 950+300, 950
+C_X, C_Y = SCREEN_H/2, SCREEN_H/2
+screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
+pygame.display.set_caption("Mahjong 1 Kyoku")
+clock = pygame.time.Clock()
 
-    # そいつが現在鳴いているかどうかの判定
-    def ifnaki(self):            
-        result = True
-        for n in self.tehai["naki"]: # 誰かからひとつでも鳴いてたらFalse
-            fromwho_li = [nn[1] for nn in n]
-            for f in fromwho_li:
-                if f != fromwho_li: result == False
-        return result
+
+input_active = False        # クリックで欄をアクティブにする例
+buffer       = ""           # 入力中の文字列
+done_lines   = []           # Enter確定済みの行を溜める
+
+input_rect = pygame.Rect(40, 150, 560, 40)   # 入力欄の位置・サイズ
+
+# 牌画像を読み込む
+hai_dir = f"{dir}/assets/hai/edited"
+hai_path = {
+    **{f"m{i}": f"{hai_dir}/m{i}.png"  for i in range(1, 10)},
+    **{f"p{i}": f"{hai_dir}/p{i}.png"  for i in range(1, 10)},
+    **{f"s{i}": f"{hai_dir}/s{i}.png"  for i in range(1, 10)},
+    "ton":  f"{hai_dir}/ton.png",
+    "nan":  f"{hai_dir}/nan.png",
+    "sha":  f"{hai_dir}/sha.png",
+    "pei":  f"{hai_dir}/pei.png",
+    "haku": f"{hai_dir}/haku.png",
+    "hatu": f"{hai_dir}/hatsu.png",
+    "chun": f"{hai_dir}/chun.png",
+    "back": f"{hai_dir}/Back.png",
+    "front": f"{hai_dir}/Front.png",
+}
+image_dic = {}
+shrink = 15
+H_Y = 800/shrink # 描画する牌の横の長さ
+H_X = 600/shrink # 描画する牌の縦の長さ
+H_XY = H_Y-H_X
+H_G = 10 # 描画する牌の隙間
+
+FUCHI = (SCREEN_H-(C_Y+400)-H_Y)
+
+for hai in hai_path:
+    raw_image = pygame.image.load(hai_path[hai]).convert_alpha()
+    image_dic[hai] = pygame.transform.scale(raw_image, (raw_image.get_width()/shrink, raw_image.get_height()/shrink))
+
+# pygameで使ういろんな変数をここで定義する
+WHITE = (255, 255, 255)
+BLACK = (  0,   0,   0)
+GRAY = (30, 30, 30)
+RED   = (255,   0,   0)
+YELLOW = (255, 255, 0)
+TAKU = (0, 96, 0)
+RIGHT = (0, 96*3/2, 0)
+
+font = pygame.font.SysFont(None, 24)
+cmd_font = pygame.font.SysFont(None, 30)
+
+
+def draw_hai(hai, x, y, rotate=0, clm_mode = False): # 牌を描画する関数
+    # XY軸をどの向きに設定するかで変換する
+    theta = math.radians(rotate_all)
+    x_converted = C_X + (x - C_X) * math.cos(theta) + (y - C_Y) * math.sin(theta)
+    y_converted = C_Y - (x - C_X) * math.sin(theta) + (y - C_Y) * math.cos(theta)
+
+    rotate += rotate_all
     
-    def menzen_li(self):
-        if self.tehai["tumo"] != None:
-            return self.tehai["menzen"] + [self.tehai["tumo"]]
-        else:
-            return self.tehai["menzen"] 
-    
-    def dbg(self):
-        nakitx = ""
-        for i in self.tehai["naki"]:
-            for ii in i: 
-                if ii[1] == self.playerid: nakitx += f" {ii[0]}"
-                else:                      nakitx += f" {ii[0]}'"
+    anchor_by_rot = {
+        0:   "topleft",
+        90:  "bottomleft",
+        180: "bottomright",
+        270: "topright",
+    }
 
-        kawatx = ""
-        for i in self.kawa:
-            if i[1]: kawatx += "_" + i[0] + " "
-            else:    kawatx += i[0] + " "
- 
-        return f"{"_".join(ripai.ripai(self.tehai["menzen"]))} [{self.tehai["tumo"]}] {nakitx} \n {kawatx}"
-    
-    def kiru(self, hai):
-        self.tehai["menzen"].remove(hai)
+    if hai != "back": # 牌裏牌でない限り背景を描画
+        # 背景の描画
+        front = image_dic["front"]
+        front =  pygame.transform.rotate(front, rotate)
+        rect = front.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
+        screen.blit(front, rect)
 
-# infoの初期化
-info.edit("kyoku", "t1")
-info.edit("hon", 0)
+    # 牌の描画
+    img = image_dic[hai]
+    img = pygame.transform.rotate(img, rotate)
+    rect = img.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
+    screen.blit(img, rect)
+    if clm_mode:
+        clickmap.append((rect, [MY_PID, "kiru", hai])) # クリックマップに登録 
 
 
-while True:
-    # 開局時の初期化を行う
-    # 4人分のクラスオブジェクトを作成（playersというリストにData_A, Data_B, Data_C, Data_Dが入ってるイメージ）
-    # 基本的に4人のクラスはこのリストの中のオブジェクトとしてまとめて扱う（例えばData_A=…のようにして4つの管理はしないという意味）
-    players = [
-        PlayerInfo(
-            playerid= playerid,
-            tehai= {"menzen": [],
-                    "naki": [],
-                    "tumo": None
-                    },
-            kawa= []
-            ) for playerid in [0, 1, 2, 3]
-        ]
-
-    # 山を作り、王牌や配牌を設定する→しようと思ってたけど毎回ランダムにツモればシャッフル山作る必要なくね？と思ったのでやっぱなし　河原ごめん！
-    #haipai.haipai()
-    YAMA = ALL_HAI*4 # すべての牌が入っている山を作成
-    for Player in players: # ←ここでPlayerが大文字なのはクラスの変数名のイニシャルが慣習的に大文字だから
-        haipai = []
-        for i in range(13): # 親子で最初に13枚ずつ取る
-            tumo = random.choice(YAMA)
-            YAMA.remove(tumo)
-            haipai.append(tumo)
-        Player.tehai["menzen"] = haipai
-
-    players[0].tehai["menzen"] = "m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split()
-    players[1].tehai["menzen"] = "p1 p1 p1 p2 p3 p4 p5 p6 p7 p8 p9 p9 p9".split()
-    players[2].tehai["menzen"] = "s1 s1 s1 s2 s3 s4 s5 s6 s7 s8 s9 s9 s9".split()
-    players[3].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
-
-    # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
-    dora_omote = []
-    dora_ura   = []
-    for i in range(5):
-        d_o = random.choice(YAMA)
-        YAMA.remove(d_o)
-        dora_omote.append(d_o)
-        d_u = random.choice(YAMA)
-        YAMA.remove(d_u)
-        dora_ura.append(d_u)
-    info.edit("dora_omote", dora_omote)
-    info.edit("dora_ura", dora_ura)
-    printd("dora:", dora_omote)
-    printd("uradora:", dora_ura)
-
-    info.edit("kancount", 0) # カンの初期化
-    whoturn = info.oya() # 誰が親かで最初にツモるひとを判定する (0~4)
-    
-    agari_data = [] # その局でだれが何をアガるかの変数
-    oyakeep = False # その局で親がキープされるかの変数
+def draw_players():
+    global rotate_all
     
 
-    # ここのループでは、「捨てられた直後 → 牌を捨てる」を1ループとする（紆余曲折の末これがもっとも整って良い）
-    sousa = None # ループ内でどんな操作が行われるか
-    sousa_hai = None # ループ内の操作の対象牌
-    ifkan = False
-    while True: 
-        # この時点で、全員が13牌
+    for i in [0,1,2,3]:
+        rotate_all = [0, 90, 180, 270][i]
+        pid = (MY_PID+i)%4
+        Player = Game.players[pid]
+        clm_mode = True if i == 0 else False
 
-        # 捨てられた牌について、他家が操作できるかの判定を行う
-        ifmove = False # 捨牌が鳴かれるかどうかの変数
-        if sousa_hai != None: # 開局以外の場合
-            printd("check tacha_capable_sousa")
-            tacha_capable_sousa_li = []
-            for i_op, OtherPlayer in enumerate(players):
-                if i_op == whoturn: continue # 自分自身の捨て牌・カン牌にはアクションできませんボケ
+        # 面前牌を描画
+        x = FUCHI + H_X*2 + H_G
+        for hai in ripai.ripai(Player.tehai["menzen"]):    
+            draw_hai(hai, x, C_Y+400, clm_mode=clm_mode)
+            x += H_X
+            
+        # ツモ牌を描画
+        tumohai = Player.tehai["tumo"]
+        if tumohai != None:
+            draw_hai(tumohai, x+H_G, C_Y+400, clm_mode=clm_mode)
+        
+        x = SCREEN_H - (FUCHI + 1) # この１はピクセル調整
 
-                # ロン判定
-                # フリテン要素について未作成！
-                if yaku.agari_capable(OtherPlayer, sousa_hai, sousa):
-                    tacha_capable_sousa_li.append([i_op, "ron"])
+        # 鳴いた牌を描画
+        for naki in Player.tehai["naki"]:
+            if len(naki) == 4: # カンのとき
+                hai = naki[0][0]
                 
-                if OtherPlayer.ifrichi(): continue # 立直していればロン判定のみで切り上げる
+                if [n[1] for n in naki].count(pid) == 4: # 暗槓                  
+                    draw_hai("back", x-H_X*1, C_Y+400)
+                    draw_hai(hai, x-H_X*2, C_Y+400)
+                    draw_hai(hai, x-H_X*3, C_Y+400)
+                    draw_hai("back", x-H_X*4, C_Y+400)
+                    x -= H_X*4 + H_G
                 
-                # 立直してない場合
-                # チー判定
-                if i_op%4 == (whoturn+1)%4: # そもそも下家じゃないとチーできない
-                    if len(sousa_hai) == 2: # 数牌判定
-                        sh_mps, sh_n = sousa_hai[0], int(sousa_hai[1])
-                        OPtm = OtherPlayer.tehai["menzen"]
-                        if any([f"{sh_mps}{sh_n-2}" in OPtm and f"{sh_mps}{sh_n-1}" in OPtm,
-                            f"{sh_mps}{sh_n-1}" in OPtm and f"{sh_mps}{sh_n+1}" in OPtm,
-                            f"{sh_mps}{sh_n+1}" in OPtm and f"{sh_mps}{sh_n+2}" in OPtm
-                            ]):
-                            tacha_capable_sousa_li.append([i_op, "chi"])
+                else:
+                    if naki[3][1] != pid: # 大明槓
+                        fromwho = naki[3][1]
+                        if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                            draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_Y-H_X*1, C_Y+400)
+                            draw_hai(hai, x-H_Y-H_X*2, C_Y+400)
+                            draw_hai(hai, x-H_Y-H_X*3, C_Y+400)
+                        elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_Y-H_X-H_X, C_Y+400)
+                        elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                        x -= H_Y + H_X*3 + H_G
+                            
+                    elif naki[3][1] != pid: # 加槓
+                        fromwho = naki[2][1]
+                        mod4 = (fromwho-pid)%4
+                        if mod4 == 1: # 上家から鳴いていた場合
+                            draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_Y, C_Y+400+H_XY+H_X, rotate=90)
+                            draw_hai(hai, x-H_Y-H_X, C_Y+400)
+                            draw_hai(hai, x-H_Y-H_X-H_X, C_Y+400)
+                        elif mod4 == 2: # 対面から鳴いていた場合
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
+                            draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
+                        elif mod4 == 3: # 下家から鳴いていた場合
+                            draw_hai(hai, x-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X, C_Y+400)
+                            draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                            draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
+                        x -= H_Y + H_X*2 + H_G
+            elif len(naki) == 3 and [n[0] for n in naki].count(naki[0][0]) == 3: # ポンのとき
+                hai = naki[0][0]
+                fromwho = naki[2][1]
+                if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                    draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai, x-H_Y-H_X*1, C_Y+400)
+                    draw_hai(hai, x-H_Y-H_X*2, C_Y+400)
+                elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                    draw_hai(hai, x-H_X, C_Y+400)
+                    draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
+                elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                    draw_hai(hai, x-H_X, C_Y+400)
+                    draw_hai(hai, x-H_X-H_X, C_Y+400)
+                    draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                x -= H_Y + H_X*2 + H_G
+            else: # チーのとき
+                hai_1 = naki[0][0]
+                hai_2 = naki[1][0]
+                hai_3 = naki[2][0]
+                fromwho = naki[2][1]
+                if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                    draw_hai(hai_3, x-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai_2, x-H_Y-H_X*1, C_Y+400)
+                    draw_hai(hai_1, x-H_Y-H_X*2, C_Y+400)
+                elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                    draw_hai(hai_2, x-H_X, C_Y+400)
+                    draw_hai(hai_3, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                    draw_hai(hai_1, x-H_X-H_Y-H_X, C_Y+400)
+                elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                    draw_hai(hai_2, x-H_X, C_Y+400)
+                    draw_hai(hai_1, x-H_X-H_X, C_Y+400)
+                    draw_hai(hai_3, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
+                x -= H_Y + H_X*2 + H_G
 
-                # ポン判定
-                if OtherPlayer.tehai["menzen"].count(sousa_hai) >= 2: # 面前手牌に2個以上該当牌があったらポンできる
-                    tacha_capable_sousa_li.append([i_op, "pon"])
-
-                # カン判定
-                if OtherPlayer.tehai["menzen"].count(sousa_hai) >= 3: # 面前手牌に3個以上該当牌があったらカンできる
-                    tacha_capable_sousa_li.append([i_op, "daiminkan"])
-            printd("tacha_capable_sousa_li:", tacha_capable_sousa_li)
-
-
-            # 操作をリストアップしたら、優先度の判定をしていく
-            # まずはロンが含まれてるか否かの判定をする
-            
-            tacha_capable_sousa_li.sort(key=lambda x: ["ron", "daiminkan", "pon", "chi"].index(x[1]))
-
-            
-            tacha_ron_li = [tcsl for tcsl in tacha_capable_sousa_li if tcsl[1] == "ron"]
-            tacha_without_ron_li = [tcsl for tcsl in tacha_capable_sousa_li if tcsl[1] != "ron"] 
-            printd("ron_li:", tacha_ron_li)
-
-            # 他家に選択させる
-            # まず他家プレイヤーにロンの選択をさせる
-            for tcsl in tacha_ron_li:
-                # 他家プレイヤーに選択させる
-                ifmove_q = input(f"{tcsl} で動きますか？:")
-                if ifmove_q == "y": # 他家が選択を承認したら 
-                    ifmove = True
-                    MovingPlayer = players[tcsl[0]]
-                    agari_data.append({
-                        "whoagari": tcsl[0],
-                        "whoagarare": whoturn,
-                        "tehai": MovingPlayer.tehai,
-                        "yaku":  yaku.best_yaku(MovingPlayer, sousa_hai, sousa), })
-
-            if len(agari_data) != 0: # ロンがひとつでも承認されたらbreak
-                break
-
-            for tcsl in tacha_without_ron_li:
-                # 他家プレイヤーに選択させる
-                ifmove_q = input(f"{tcsl} で動きますか？:")
-                if ifmove_q == "y": # 他家が選択を承認したら 
-                    ifmove = True
-                    MovingPlayer = players[tcsl[0]]
-
-                    # 承認された操作を実際に行う
-                    if tcsl[1] == "pon": # ポンの場合
-                        for i in range(2): MovingPlayer.kiru(sousa_hai)
-                        MovingPlayer.tehai["naki"].append([
-                            [sousa_hai, tcsl[0]],
-                            [sousa_hai, tcsl[0]],
-                            [sousa_hai, whoturn],])
-                    elif tcsl[1] == "daiminkan": # カンの場合
-                        for i in range(3): MovingPlayer.kiru(sousa_hai)
-                        MovingPlayer.tehai["naki"].append([
-                            [sousa_hai, tcsl[0]],
-                            [sousa_hai, tcsl[0]],
-                            [sousa_hai, tcsl[0]],
-                            [sousa_hai, whoturn],])
-                        info.edit("kancount", info.read()["kancount"] + 1)
-                    elif tcsl[1] == "chi": # チーの場合
-                        # チー候補を見つける
-                        chi_koho = []
-
-                        sh_mps, sh_n = sousa_hai[0], int(sousa_hai[1])
-                        MPtm = MovingPlayer.tehai["menzen"]
-                        if f"{sh_mps}{sh_n-2}" in MPtm and f"{sh_mps}{sh_n-1}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n-2}", f"{sh_mps}{sh_n-1}"])
-                        if f"{sh_mps}{sh_n-1}" in MPtm and f"{sh_mps}{sh_n+1}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n-1}", f"{sh_mps}{sh_n+1}"])
-                        if f"{sh_mps}{sh_n+1}" in MPtm and f"{sh_mps}{sh_n+2}" in MPtm: chi_koho.append([f"{sh_mps}{sh_n+1}", f"{sh_mps}{sh_n+2}"])
-                        
-                        # チー候補をプレイヤーに絞り込ませる
-                        if len(chi_koho) == 1:
-                            chi_sousa = chi_koho[0]
-                        else:
-                            chi_n = int(input(f"どれにしますか？（インデックスで）{chi_koho}"))
-                            chi_sousa = chi_koho[chi_n]
-                        
-                        for i in range(2): MovingPlayer.kiru(chi_sousa[i])
-                        MovingPlayer.tehai["naki"].append([
-                            [chi_sousa[0], tcsl[0]],
-                            [chi_sousa[1], tcsl[0]],
-                            [sousa_hai, whoturn],])
-
-                    whoturn = tcsl[0] # あとのループ内の対象プレイヤーを確定させる
-                    break
-            
-            if not ifmove: # 捨てられた牌に対して誰も動かなかったら
-                whoturn = (whoturn + 1) % 4 # 下家にターンをゆずる
-                
-        else : # 開局時 
-            printd(f"START {info.read()["kyoku"]}")
-        
-        # ここで流局の場合を考える
-        if len(YAMA) <= 4: # 嶺上牌しかなくなったら終わり
-            break
+        # 河を描画
 
 
-        printd(f"~ start {whoturn} turn", "~"*64)
-        
-        if not ifmove: # ターンが鳴き後でなかったらツモらせる
-            tumohai = random.choice(YAMA)
-            YAMA.remove(tumohai)
-            players[whoturn].tehai["tumo"] = tumohai
-        else: tumohai = None # 混乱を避けるため tumohaiをいちおう定義する
-        
-        # この時点で、一人だけ14牌    
-        Player = players[whoturn] # 対象プレイヤーを指定
-        
-        capable_sousa = { # プレイヤーができる操作を指定
-            "tumo": [],
-            
-            "kiru": Player.menzen_li(),
-            "richi": [],
-            "ankan" : [],
-            "kakan" : [],
-        }
 
-        # 鳴いた後の操作でない場合、立直・ツモ・カンができる
-        if not ifmove:
-            # 立直判定
-            if Player.ifrichi(): # 鳴いていなければ聴牌判定に入る
-                whichtotempai = []
-                for kiruhai in Player.menzen_li(): 
-                    tehai_li_copied = Player.menzen_li()[:]
-                    tehai_li_copied.remove(kiruhai)
-                    for hai in ALL_HAI:
-                        if ifagari.ifagari(tehai_li_copied + [hai]): whichtotempai.append(kiruhai)
-                capable_sousa["richi"] = ripai.ripai(set(whichtotempai)) # 重複・順序を調整
 
-            # 槓判定（暗槓・加槓）（ツモ・カン時）
-            # 立直していれば待ちが変わってしまう暗槓はできないのであとあと修正が必要
-            # 未作成！
-            for hai in ALL_HAI:
-                if Player.menzen_li().count(hai) == 4: # 暗槓判定
-                    capable_sousa["ankan"].append(hai)
+def click_to_cmd(pos):
+    # クリックした座標からコマンドを返すイメージ
+    for rect, cmd in clickmap:
+        if rect.collidepoint(pos):
+            return cmd
+    return None
 
-                for naki in Player.tehai["naki"]: # 加槓判定
-                    if [i[0] for i in naki].count(hai) == 3 and (hai in Player.menzen_li()):
-                        capable_sousa["kakan"].append(hai)
+clickmap = []
 
-            # 和了判定
-            if yaku.agari_capable(Player, tumohai, sousa):
-                capable_sousa["tumo"] = Player.tehai["tumo"]
-                
-
-        # プレイヤー側に、可能操作から操作を選ばせる
-        for P in players:
-            printd(f"({P.playerid}) {P.dbg()}")
-        printd("capable_sousa: ", capable_sousa)
-
-        sinp = input("sousa:").split()
-
-        sousa, sousa_hai = sinp[0], sinp[1]
-
-        # 選択された操作に基づいて処理を行う
-        if sousa == "ankan": # 暗槓
-            for i in range(4):  Player.kiru(sousa_hai)
-            Player.tehai["naki"].append([[sousa_hai, whoturn] for i in range(4)])
-            
-        elif sousa == "kakan": # 明槓   
-            # 該当牌のインデックスの取得
-            for k_index, n in Player.naki:
-                if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
-                    Player.tehai["naki"][k_index].append([sousa_hai, whoturn])
-
-        elif sousa == "kiru": # 普通に切るとき
-            if not ifmove: # 鳴き後に切るときは手牌に牌を追加しない 
-                Player.tehai["menzen"].append(tumohai)
-            Player.kiru(sousa_hai)
-            Player.kawa.append([sousa_hai, False])
-        elif sousa == "richi": # 立直
-            Player.tehai["menzen"].append(tumohai)
-            Player.kiru(sousa_hai)
-            Player.kawa.append([sousa_hai, True])
-        
-        elif sousa == "tumo": # ツモ和了
-            agari_data.append({
-                "whoagari": whoturn,
-                "whoagarare": None,
-                "tehai": Player.tehai,
-                "yaku":  yaku.best_yaku(Player, tumohai, sousa), })
-            break
-
-        # 最後にプレイヤーのツモ牌をNoneにする
-        Player.tehai["tumo"] = None
-        
-        print(f"~ end {whoturn} turn", "~"*64)
-
+def draw(Game: Mahjong):
+    # ステージの描画
+    pygame.draw.rect(screen, GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側
+    FUCHI_ = FUCHI-5
+    pygame.draw.rect(screen, TAKU, (FUCHI_, FUCHI_, SCREEN_H-FUCHI_*2, SCREEN_H-FUCHI_*2)) # 緑の卓
+    pygame.draw.rect(screen, RIGHT, (SCREEN_H, 0, 300, SCREEN_H)) # 右の操作画面
+    pygame.draw.rect(screen, RIGHT, (C_X-150, C_Y-150, 300, 300)) # 真ん中のやつ
     
 
+    # クリックマップを作製
+    global clickmap
+    clickmap = []
+    
+    # 牌を描画する
+    draw_players()
+    
+    # デバッグ要素ゾ
+    info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, capable_sousa_now={Game.capable_sousa_now}"
+    info_surf = font.render(info_tx, True, YELLOW)
+    screen.blit(info_surf, (20, 20))
+    
+    # 可能なコマンドを箇条書きで描画する
+    y = 30
+    if Game.queue != []:
+        if Game.queue[0] == MY_PID: # 自分のときしか描画しないお！
+            for i in Game.capable_sousa_now:
 
-    printd("agari_data:", agari_data)
+                rect = pygame.draw.rect(screen, WHITE, (SCREEN_H + 30, y+1, 300-30*2, 28))
+                clickmap.append((rect, i)) # クリックマップに登録
 
-    # 流局かそうでないかで場合分け
-    if len(agari_data) == 0:
-        printd("RYUKYOKU")
-        # 流し満貫の判定
-        # 未作成！！！
-
-
-    if len(agari_data) != 0:
-        printd("AGARI")
-        # 親がキープされるかの判定
-        for agd in agari_data:
-            if agd["whoagari"] == info.oya():
-                oyakeep = True
-        
-        # 点数計算・点棒移動の処理
-
-    # 箱割れが発生したらbreak
-    # 未作成！！！
+                #csn_surf = cmd_font.render("  ".join(i[1:]), True, BLACK,)
+                csn_surf = cmd_font.render(f"{i}", True, BLACK,)
+                
+                rect      = csn_surf.get_rect()   # ① まだ原点 (0,0)
+                rect.center = (SCREEN_H + 150, y+15)
+                screen.blit(csn_surf, rect)
+                y += 30
 
 
-    # 次局のためのinfo編集
-    if oyakeep: # 親キープの場合
-        info.edit("hon", info.read()["hon"] + 1)
-    else: # 親が流れる場合
-        kyoku_li = ["t1", "t2", "t3", "t4", "n1", "n2", "n3", "n4"]
-        now_kyoku_index = kyoku_li.index(info.read()["kyoku"])
-        if now_kyoku_index == 7: # 半荘消化終わり
-            break
-        else:
-            info.edit("kyoku", kyoku_li[now_kyoku_index+1])
-printd("HANCHAN END")
+def loop_runner(loop):
+    asyncio.set_event_loop(loop)  # このスレッドで `asyncio.get_event_loop()` が使える
+    loop.run_forever()            # coroutine が投げ込まれるまで待ち続ける
+
+
+ai_q: queue.Queue = queue.Queue()
+
+loop = asyncio.new_event_loop()
+
+threading.Thread(target=loop_runner, args=(loop,), daemon=True).start()
+
+async def start_ai():
+    # 1) 疑似思考ウェイト
+    what_ai_can_do = Game.capable_sousa_now
+    printd("AI can do", what_ai_can_do)
+    printd("START AI THINKING")
+    await asyncio.sleep(0.5) # とりま待たせる
+    AI_cmd = random.choice(what_ai_can_do)
+    printd("FINISH AI THINKING")
+
+    ai_q.put(AI_cmd)
+
+    pygame.event.post(pygame.event.Event(AI_DONE))
+
+def launch_ai():
+    asyncio.run_coroutine_threadsafe(start_ai(), loop)
+
+
+AI_DONE = pygame.USEREVENT + 1 
+clock = pygame.time.Clock()
+
+Game = Mahjong()
+
+MY_PID = 0
+AI_PIDS = [1,2,3]
+
+waiting_ai = False
+
+running = True
+while running: # ここがtkinterでいうとこのmainloop()
+    cmd = None
+
+    # ① イベント取得
+    for ev in pygame.event.get():
+        if ev.type == pygame.QUIT:
+            running = False
+        elif ev.type == AI_DONE:      # ← コルーチン完了通知
+            cmd = ai_q.get()
+            waiting_ai = False 
+        elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # マウスのクリックを取得する
+            cmd = click_to_cmd(ev.pos)
+            print(cmd)
+
+    # AIを起こす
+    if Game.queue != []:
+        if (not waiting_ai) and Game.queue[0] in AI_PIDS and cmd == None: # AIが起きてなくかつAIのターンでかつcmdがNone=AIがまだ触ってないとき
+            printd("LAUNCH AI")
+            waiting_ai = True
+            launch_ai()
+
+    # ② ロジックを 1 フレーム進める
+    Game.step(cmd)         # None なら自動進行だけ
+
+    # ③ 描画
+    draw(Game)
+
+    pygame.display.flip()
+    clock.tick(30)
+
+pygame.quit()
+sys.exit()

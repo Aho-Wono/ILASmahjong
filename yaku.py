@@ -103,6 +103,8 @@ def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
 # いろんなデータを渡して、役の組み合わせを出力する関数
 def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     #debug.printd("[yaku fn roaded]")
+    #debug.printd(PlayerInfo.dbg(), agarihai, sousa)
+    
     yaku_pattern_li = []
     
     playerid = PlayerInfo.playerid
@@ -132,7 +134,6 @@ def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツ�
     for m in menzen_pattern_li: yaku_printd(m)
     for menzen_pattern in menzen_pattern_li:
         yaku_printd("=== menzen_pattern ", menzen_pattern)
-        debug.printd("=== menzen_pattern ", menzen_pattern)
         yaku_pattern = []
 
         # 暗槓ロン判定（国士のみ）を行う
@@ -163,7 +164,7 @@ def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツ�
         saladbowl.append(agarihai)
         for hai in saladbowl:
             if hai in dora_omote_valid: yaku_pattern.append("ドラ")
-            if hai in dora_ura_valid:   yaku_pattern.append("裏ドラ")
+            if hai in dora_ura_valid and PlayerInfo.ifrichi():   yaku_pattern.append("裏ドラ")
 
 
 
