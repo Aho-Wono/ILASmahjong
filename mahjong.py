@@ -328,7 +328,7 @@ class Mahjong():
                     "whoagari": p_id,
                     "whoagarare": self.whoturn,
                     "tehai": Player.tehai,
-                    "yaku":  yaku.best_yaku(Player, sousa_hai, sousa), })
+                    "yaku":  yaku.best_yaku(Player, sousa_hai, self.previous_cmd[1]), })
 
         # フェーズ・キューの更新
         if sousa == "ignore":
