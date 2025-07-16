@@ -110,7 +110,7 @@ def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツ�
     naki = PlayerInfo.tehai["naki"]
     tumo = PlayerInfo.tehai["tumo"]
     kawa = PlayerInfo.kawa
-
+    
     menzen_pattern_li = mentsu_pattern.mentsu_pattern(menzen + [agarihai])
     
     # アガリ系じゃなかったら空のyaku_pattern_liを返す

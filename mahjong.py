@@ -1,4 +1,5 @@
 from enum import Enum, auto
+import mentsu_pattern
 
 class Phase(Enum): # ゲームのMAP値を定義
     NEED_DRAW    = auto() # 新しい手番が来た直後
@@ -9,10 +10,13 @@ class Phase(Enum): # ゲームのMAP値を定義
 # とりあえず1局まるまる遊べるようなものを作ります
 # プレイヤーの状況を包括するクラスを作成
 class PlayerInfo:
+    ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
+
     def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
         self.playerid = playerid # プレイヤー名 
         self.tehai = tehai # 手牌の情報
         self.kawa = kawa # 河の情報
+        self.ignored = []
 
     # そいつが現在立直しているかどうかの判定
     def ifrichi(self):
@@ -55,6 +59,18 @@ class PlayerInfo:
             self.tehai["menzen"].append(self.tehai["tumo"])
             self.tehai["tumo"] = None
         self.tehai["menzen"].remove(hai)
+
+    def iffuriten(self):
+        what_to_tempai = []
+        for hai in self.ALL_HAI:
+            if ifagari.ifagari(self.menzen_li() + [hai]):
+                what_to_tempai.append(hai)
+        
+        for wtt in what_to_tempai:
+            if wtt in self.kawa or wtt in self.ignored[1:]:
+                return True
+            
+        return False
 
 import ifagari
 import info
@@ -189,10 +205,10 @@ class Mahjong():
                 if i_op == self.whoturn: continue # 自分自身の捨て牌・カン牌にはアクションできませんボケ
 
                 # ロン判定
-                # フリテン要素について未作成！
-                if yaku.agari_capable(OtherPlayer, sousa_hai, self.previous_cmd[1]):
-                    capable_sousa_li.append([i_op, "ron", sousa_hai])
-                
+                if not OtherPlayer.iffuriten(): # フリテン判定を行う
+                    if yaku.agari_capable(OtherPlayer, sousa_hai, self.previous_cmd[1]):
+                        capable_sousa_li.append([i_op, "ron", sousa_hai])
+                    
                 if OtherPlayer.ifrichi(): continue # 立直していればロン判定のみで切り上げる
                 
                 # 立直してない場合
@@ -248,7 +264,6 @@ class Mahjong():
             return csl_n
 
     def do_cmd(self, cmd): # ダブロン・トリロンに対応するためcmdはリストにしている
-
         if cmd == None: 
             return # 何もしない
         
@@ -280,10 +295,17 @@ class Mahjong():
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, False, False])
 
+                for P in self.players:
+                    if P.ifrichi():
+                        P.ignored.append(sousa_hai)
             elif sousa == "richi": # 立直
                 Player.tehai["menzen"].append(Player.tehai["tumo"])
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, True, False])
+                
+                for P in self.players:
+                    if P.ifrichi():
+                        P.ignored.append(sousa_hai)
                 
             elif sousa == "tumo": # ツモ和了
                 self.agari_data.append({

@@ -3,17 +3,17 @@
     "hon": 0,
     "kancount": 0,
     "dora_omote": [
-        "p3",
         "chun",
-        "s8",
-        "m5",
-        "m6"
+        "s9",
+        "p9",
+        "m4",
+        "s9"
     ],
     "dora_ura": [
-        "m8",
-        "p7",
+        "m6",
+        "haku",
         "p2",
-        "nan",
-        "p1"
+        "p5",
+        "p3"
     ]
 }

@@ -1,6 +1,6 @@
 import sys
 import pygame
-from mahjong import Mahjong
+from mahjong import Mahjong, Phase
 from debug import printd
 import random
 import asyncio
@@ -10,7 +10,8 @@ import getdir
 import ripai
 import math
 
-dir = getdir.dir()
+
+DIR = getdir.dir()
 
 
 # ---------- pygame 初期化 ----------
@@ -29,7 +30,7 @@ done_lines   = []           # Enter確定済みの行を溜める
 input_rect = pygame.Rect(40, 150, 560, 40)   # 入力欄の位置・サイズ
 
 # 牌画像を読み込む
-hai_dir = f"{dir}/assets/hai/edited"
+hai_dir = f"{DIR}/assets/hai/edited"
 hai_path = {
     **{f"m{i}": f"{hai_dir}/m{i}.png"  for i in range(1, 10)},
     **{f"p{i}": f"{hai_dir}/p{i}.png"  for i in range(1, 10)},
@@ -45,18 +46,23 @@ hai_path = {
     "front": f"{hai_dir}/Front.png",
 }
 image_dic = {}
-shrink = 15
-H_Y = 800/shrink # 描画する牌の横の長さ
-H_X = 600/shrink # 描画する牌の縦の長さ
+SHRINK = 15
+H_Y = 800/SHRINK # 描画する牌の横の長さ
+H_X = 600/SHRINK # 描画する牌の縦の長さ
 H_XY = H_Y-H_X
 H_G = 10 # 描画する牌の隙間
 
 FUCHI = (SCREEN_H-(C_Y+400)-H_Y)
 
+def shrink(img, num):
+    return pygame.transform.scale(img, (img.get_width()/num, img.get_height()/num))
 
+
+# 各画像の読み込み
 for hai in hai_path:
     raw_image = pygame.image.load(hai_path[hai]).convert_alpha()
-    image_dic[hai] = pygame.transform.scale(raw_image, (raw_image.get_width()/shrink, raw_image.get_height()/shrink))
+    image_dic[hai] = shrink(raw_image, SHRINK)
+image_dic["richibo"] = shrink(pygame.image.load(f"{DIR}/assets/richibo.png").convert_alpha(), 10)
 
 class COLOR():
     WHITE = (255, 255, 255)
@@ -71,8 +77,26 @@ class COLOR():
 font = pygame.font.SysFont(None, 24)
 cmd_font = pygame.font.SysFont(None, 30)
 
+clickmap = []
 
-def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False, rotate_all = 0): # 牌を描画する関数
+def draw_node(img, x, y, rotate_all = 0, clm_cmd = None, anchor = "center"):
+    # XY軸をどの向きに設定するかで変換する
+    theta = math.radians(rotate_all)
+    x_converted = C_X + (x - C_X) * math.cos(theta) + (y - C_Y) * math.sin(theta)
+    y_converted = C_Y - (x - C_X) * math.sin(theta) + (y - C_Y) * math.cos(theta)
+
+    img = pygame.transform.rotate(img, rotate_all)        
+    rect = img.get_rect()
+    rect.center = (x_converted, y_converted)
+    screen.blit(img, rect)
+
+    # クリックマップへの登録
+    if clm_cmd != None:
+        clickmap.append(rect, clm_cmd)
+
+
+def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False, rotate_all = 0): # 牌を描画する関数 
+    
     # XY軸をどの向きに設定するかで変換する
     theta = math.radians(rotate_all)
     x_converted = C_X + (x - C_X) * math.cos(theta) + (y - C_Y) * math.sin(theta)
@@ -87,40 +111,58 @@ def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False, rotate_all 
         270: "topright",
     }
 
-    if hai != "back": # 牌裏牌でない限り背景を描画
         # 背景の描画
-        front = image_dic["front"]
-        front =  pygame.transform.rotate(front, rotate)
-        if iftrans: front.set_alpha(128)        
-        rect = front.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
-        screen.blit(front, rect)
+    front = image_dic["front"]
+    front =  pygame.transform.rotate(front, rotate)
+    if iftrans: front.set_alpha(128)        
+    rect = front.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
+    if clm_mode and rect.collidepoint(POS):
+        rect.y -= 10   
+    screen.blit(front, rect)
 
     # 牌の描画
     img = image_dic[hai]
     img = pygame.transform.rotate(img, rotate)
     if iftrans: img.set_alpha(128)
     rect = img.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
+    if clm_mode and rect.collidepoint(POS):
+        rect.y -= 10   
     screen.blit(img, rect)
     if clm_mode:
         clickmap.append((rect, [MY_PID, "kiru", hai])) # クリックマップに登録 
-
 
 def draw_player(pid):    
     rotate_all = [0, 90, 180, 270][(pid-MY_PID)%4]
     
     Player = Game.players[pid]
-    clm_mode = True if pid == MY_PID else False
+    if pid == MY_PID and Game.whoturn == MY_PID:
+        if Player.ifrichi():
+            clm_mode_menzen = False
+        else:
+            clm_mode_menzen = True
+        clm_mode_tumo = True
+    else:
+        clm_mode_menzen = False
+        clm_mode_tumo = False
+
+
+    if pid == MY_PID:
+        # デバッグ描画
+        info_tx = f"ignored={Player.ignored}"
+        info_surf = font.render(info_tx, True, COLOR.YELLOW)
+        screen.blit(info_surf, (C_X+20, C_Y+20))
+
 
     # 面前牌を描画
     x = FUCHI + H_X*2 + H_G
     for hai in ripai.ripai(Player.tehai["menzen"]):    
-        draw_hai(hai, x, C_Y+400, clm_mode=clm_mode, rotate_all=rotate_all)
+        draw_hai(hai, x, C_Y+400, clm_mode=clm_mode_menzen, rotate_all=rotate_all)
         x += H_X
         
     # ツモ牌を描画
     tumohai = Player.tehai["tumo"]
     if tumohai != None:
-        draw_hai(tumohai, x+H_G, C_Y+400, clm_mode=clm_mode, rotate_all=rotate_all)
+        draw_hai(tumohai, x+H_G, C_Y+400, clm_mode=clm_mode_tumo, rotate_all=rotate_all)
     
     x = SCREEN_H - (FUCHI + 1) # この１はピクセル調整
 
@@ -227,8 +269,9 @@ def draw_player(pid):
             x = C_X-H_X*3 
             y += (k_count//6)*H_Y
 
-        # 立直棒を描画
-
+    # 立直棒を描画
+    if Player.ifrichi():
+        draw_node(image_dic["richibo"], C_X, C_Y+H_X*3-H_G, rotate_all=rotate_all)
 
 def click_to_cmd(pos):
     # クリックした座標からコマンドを返すイメージ
@@ -237,9 +280,7 @@ def click_to_cmd(pos):
             return cmd
     return None
 
-clickmap = []
-
-def draw(Game: Mahjong):
+def draw():
     # ステージの描画
     pygame.draw.rect(screen, COLOR.GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側
     FUCHI_ = FUCHI-10
@@ -280,6 +321,17 @@ def draw(Game: Mahjong):
                 screen.blit(csn_surf, rect)
                 y += 30
 
+def draw_result():
+    draw()
+
+    # 結果を表示する（まずは仮表示）
+    info_tx = f"agari_data={Game.agari_data}"
+    info_surf = font.render(info_tx, True, COLOR.YELLOW)
+    screen.blit(info_surf, (20, 50))
+
+def draw_title():
+    # ステージの描画
+    pygame.draw.rect(screen, COLOR.GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側だけテスト描画
 
 def loop_runner(loop):
     asyncio.set_event_loop(loop)  # このスレッドで `asyncio.get_event_loop()` が使える
@@ -312,40 +364,73 @@ def launch_ai():
 AI_DONE = pygame.USEREVENT + 1 
 clock = pygame.time.Clock()
 
-Game = Mahjong()
-
-MY_PID = 0
-AI_PIDS = [1,2,3]
-
 waiting_ai = False
+
+STATE_TITLE  = 0
+STATE_PLAY   = 1
+STATE_RESULT = 2
+
+game_state = STATE_TITLE
+
 
 running = True
 while running: # ここがtkinterでいうとこのmainloop()
     cmd = None
+    POS = pygame.mouse.get_pos()
 
     # ① イベント取得
     for ev in pygame.event.get():
-        if ev.type == pygame.QUIT:
+        if ev.type == pygame.QUIT: # ばつぼたん
             running = False
-        elif ev.type == AI_DONE:      # ← コルーチン完了通知
-            cmd = ai_q.get()
-            waiting_ai = False 
-        elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # マウスのクリックを取得する
-            cmd = click_to_cmd(ev.pos)
-            print(cmd)
 
-    # AIを起こす
-    if Game.queue != []:
-        if (not waiting_ai) and Game.queue[0] in AI_PIDS and cmd == None: # AIが起きてなくかつAIのターンでかつcmdがNone=AIがまだ触ってないとき
-            printd("LAUNCH AI")
-            waiting_ai = True
-            launch_ai()
+        if game_state == STATE_TITLE: # タイトル
+            if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
+                Game = Mahjong()        # 新しい半荘／局を開始
+                game_state = STATE_PLAY
+                waiting_ai = False
+                                
+                MY_PID = 0
+                AI_PIDS = [1,2,3]
+            continue        # タイトル中は他イベント無視
 
-    # ② ロジックを 1 フレーム進める
-    Game.step(cmd)         # None なら自動進行だけ
+        if game_state == STATE_RESULT: # 結果表示
+            if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
+                Game.reset_kyoku() # ゲーム情報をリセットし次の局へ行く
+                # 未作成！！！（点棒移動やとび計算・終局判定）
+                game_state = STATE_PLAY
+            continue        # RESULT 中はクリック等を無視
+        
 
-    # ③ 描画
-    draw(Game)
+        # --------- ここから対局中 (STATE_PLAY) ---------
+        if game_state == STATE_PLAY:  
+
+            if ev.type == AI_DONE:  # AIの思考終了
+                cmd = ai_q.get()
+                waiting_ai = False 
+
+            elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
+                cmd = click_to_cmd(ev.pos)
+            
+
+    # イベント取得外の処理
+    if game_state == STATE_PLAY:
+        # AIを起こす
+        if Game.queue != []:
+            if (not waiting_ai) and Game.queue[0] in AI_PIDS and cmd == None: # AIが起きてなくかつAIのターンでかつcmdがNone=AIがまだ触ってないとき
+                printd("LAUNCH AI")
+                waiting_ai = True
+                launch_ai()
+                
+        Game.step(cmd) # None なら自動進行だけ
+
+    # 描画
+    if game_state == STATE_PLAY:
+        draw()
+    if game_state == STATE_RESULT:
+        draw_result()
+    elif game_state == STATE_TITLE:
+        draw_title()
+
 
     pygame.display.flip()
     clock.tick(30)
