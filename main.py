@@ -58,20 +58,21 @@ for hai in hai_path:
     raw_image = pygame.image.load(hai_path[hai]).convert_alpha()
     image_dic[hai] = pygame.transform.scale(raw_image, (raw_image.get_width()/shrink, raw_image.get_height()/shrink))
 
-# pygameで使ういろんな変数をここで定義する
-WHITE = (255, 255, 255)
-BLACK = (  0,   0,   0)
-GRAY = (30, 30, 30)
-RED   = (255,   0,   0)
-YELLOW = (255, 255, 0)
-TAKU = (0, 96, 0)
-RIGHT = (0, 96*3/2, 0)
+class COLOR():
+    WHITE = (255, 255, 255)
+    BLACK = (  0,   0,   0)
+    GRAY = (30, 30, 30)
+    RED   = (255,   0,   0)
+    YELLOW = (255, 255, 0)
+    TAKU = (0, 96, 0)
+    RIGHT = (0, 96*3/2, 0)
 
+# pygameで使ういろんな変数をここで定義する
 font = pygame.font.SysFont(None, 24)
 cmd_font = pygame.font.SysFont(None, 30)
 
 
-def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False): # 牌を描画する関数
+def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False, rotate_all = 0): # 牌を描画する関数
     # XY軸をどの向きに設定するかで変換する
     theta = math.radians(rotate_all)
     x_converted = C_X + (x - C_X) * math.cos(theta) + (y - C_Y) * math.sin(theta)
@@ -104,131 +105,127 @@ def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False): # 牌を�
         clickmap.append((rect, [MY_PID, "kiru", hai])) # クリックマップに登録 
 
 
-def draw_players():
-    global rotate_all
+def draw_player(pid):    
+    rotate_all = [0, 90, 180, 270][(pid-MY_PID)%4]
     
+    Player = Game.players[pid]
+    clm_mode = True if pid == MY_PID else False
 
-    for i in [0,1,2,3]:
-        rotate_all = [0, 90, 180, 270][i]
-        pid = (MY_PID+i)%4
-        Player = Game.players[pid]
-        clm_mode = True if i == 0 else False
-
-        # 面前牌を描画
-        x = FUCHI + H_X*2 + H_G
-        for hai in ripai.ripai(Player.tehai["menzen"]):    
-            draw_hai(hai, x, C_Y+400, clm_mode=clm_mode)
-            x += H_X
-            
-        # ツモ牌を描画
-        tumohai = Player.tehai["tumo"]
-        if tumohai != None:
-            draw_hai(tumohai, x+H_G, C_Y+400, clm_mode=clm_mode)
+    # 面前牌を描画
+    x = FUCHI + H_X*2 + H_G
+    for hai in ripai.ripai(Player.tehai["menzen"]):    
+        draw_hai(hai, x, C_Y+400, clm_mode=clm_mode, rotate_all=rotate_all)
+        x += H_X
         
-        x = SCREEN_H - (FUCHI + 1) # この１はピクセル調整
+    # ツモ牌を描画
+    tumohai = Player.tehai["tumo"]
+    if tumohai != None:
+        draw_hai(tumohai, x+H_G, C_Y+400, clm_mode=clm_mode, rotate_all=rotate_all)
+    
+    x = SCREEN_H - (FUCHI + 1) # この１はピクセル調整
 
-        # 鳴いた牌を描画
-        for naki in Player.tehai["naki"]:
-            if len(naki) == 4: # カンのとき
-                hai = naki[0][0]
-                
-                if [n[1] for n in naki].count(pid) == 4: # 暗槓                  
-                    draw_hai("back", x-H_X*1, C_Y+400)
-                    draw_hai(hai, x-H_X*2, C_Y+400)
-                    draw_hai(hai, x-H_X*3, C_Y+400)
-                    draw_hai("back", x-H_X*4, C_Y+400)
-                    x -= H_X*4 + H_G
-                
-                else:
-                    if naki[3][1] != pid: # 大明槓
-                        fromwho = naki[3][1]
-                        if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
-                            draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
-                            draw_hai(hai, x-H_Y-H_X*1, C_Y+400)
-                            draw_hai(hai, x-H_Y-H_X*2, C_Y+400)
-                            draw_hai(hai, x-H_Y-H_X*3, C_Y+400)
-                        elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
-                            draw_hai(hai, x-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                            draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_Y-H_X-H_X, C_Y+400)
-                        elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
-                            draw_hai(hai, x-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_X-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                        x -= H_Y + H_X*3 + H_G
-                            
-                    elif naki[3][1] != pid: # 加槓
-                        fromwho = naki[2][1]
-                        mod4 = (fromwho-pid)%4
-                        if mod4 == 1: # 上家から鳴いていた場合
-                            draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
-                            draw_hai(hai, x-H_Y, C_Y+400+H_XY+H_X, rotate=90)
-                            draw_hai(hai, x-H_Y-H_X, C_Y+400)
-                            draw_hai(hai, x-H_Y-H_X-H_X, C_Y+400)
-                        elif mod4 == 2: # 対面から鳴いていた場合
-                            draw_hai(hai, x-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                            draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
-                            draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
-                        elif mod4 == 3: # 下家から鳴いていた場合
-                            draw_hai(hai, x-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_X, C_Y+400)
-                            draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                            draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90)
-                        x -= H_Y + H_X*2 + H_G
-            elif len(naki) == 3 and [n[0] for n in naki].count(naki[0][0]) == 3: # ポンのとき
-                hai = naki[0][0]
-                fromwho = naki[2][1]
-                if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
-                    draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90)
-                    draw_hai(hai, x-H_Y-H_X*1, C_Y+400)
-                    draw_hai(hai, x-H_Y-H_X*2, C_Y+400)
-                elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
-                    draw_hai(hai, x-H_X, C_Y+400)
-                    draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                    draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400)
-                elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
-                    draw_hai(hai, x-H_X, C_Y+400)
-                    draw_hai(hai, x-H_X-H_X, C_Y+400)
-                    draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                x -= H_Y + H_X*2 + H_G
-            else: # チーのとき
-                hai_1 = naki[0][0]
-                hai_2 = naki[1][0]
-                hai_3 = naki[2][0]
-                fromwho = naki[2][1]
-                if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
-                    draw_hai(hai_3, x-H_Y, C_Y+400+H_XY, rotate=90)
-                    draw_hai(hai_2, x-H_Y-H_X*1, C_Y+400)
-                    draw_hai(hai_1, x-H_Y-H_X*2, C_Y+400)
-                elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
-                    draw_hai(hai_2, x-H_X, C_Y+400)
-                    draw_hai(hai_3, x-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                    draw_hai(hai_1, x-H_X-H_Y-H_X, C_Y+400)
-                elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
-                    draw_hai(hai_2, x-H_X, C_Y+400)
-                    draw_hai(hai_1, x-H_X-H_X, C_Y+400)
-                    draw_hai(hai_3, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90)
-                x -= H_Y + H_X*2 + H_G
-
-        # 河を描画
-        x, y = C_X-H_X*3, C_Y + (H_X*6+H_G)/2
-        k_count = 0
-        for k in Player.kawa:
-            k_count += 1
-
-            if k[1]: # 立直牌の場合
-                draw_hai(k[0], x, y+(H_Y-H_X), iftrans=k[2], rotate=90)
-                x += H_Y
-            else: # 立直牌じゃない場合
-                draw_hai(k[0], x, y, iftrans=k[2], rotate=0)
-                x += H_X
+    # 鳴いた牌を描画
+    for naki in Player.tehai["naki"]:
+        if len(naki) == 4: # カンのとき
+            hai = naki[0][0]
             
-            if k_count%6 == 0: # 河の段数をリセット
-                x = C_X-H_X*3 
-                y += (k_count//6)*H_Y
+            if [n[1] for n in naki].count(pid) == 4: # 暗槓                  
+                draw_hai("back", x-H_X*1, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai, x-H_X*2, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai, x-H_X*3, C_Y+400, rotate_all=rotate_all)
+                draw_hai("back", x-H_X*4, C_Y+400, rotate_all=rotate_all)
+                x -= H_X*4 + H_G
+            
+            else:
+                if naki[3][1] != pid: # 大明槓
+                    fromwho = naki[3][1]
+                    if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                        draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y-H_X*1, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y-H_X*2, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y-H_X*3, C_Y+400, rotate_all=rotate_all)
+                    elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                        draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y-H_X-H_X, C_Y+400, rotate_all=rotate_all)
+                    elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                        draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                    x -= H_Y + H_X*3 + H_G
+                        
+                elif naki[3][1] != pid: # 加槓
+                    fromwho = naki[2][1]
+                    mod4 = (fromwho-pid)%4
+                    if mod4 == 1: # 上家から鳴いていた場合
+                        draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y-H_X-H_X, C_Y+400, rotate_all=rotate_all)
+                    elif mod4 == 2: # 対面から鳴いていた場合
+                        draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
+                    elif mod4 == 3: # 下家から鳴いていた場合
+                        draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X, C_Y+400, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                    x -= H_Y + H_X*2 + H_G
+        elif len(naki) == 3 and [n[0] for n in naki].count(naki[0][0]) == 3: # ポンのとき
+            hai = naki[0][0]
+            fromwho = naki[2][1]
+            if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                draw_hai(hai, x-H_Y-H_X*1, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai, x-H_Y-H_X*2, C_Y+400, rotate_all=rotate_all)
+            elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
+            elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai, x-H_X-H_X, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+            x -= H_Y + H_X*2 + H_G
+        else: # チーのとき
+            hai_1 = naki[0][0]
+            hai_2 = naki[1][0]
+            hai_3 = naki[2][0]
+            fromwho = naki[2][1]
+            if (fromwho-pid)%4 == 1: # 上家から鳴いていた場合
+                draw_hai(hai_3, x-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                draw_hai(hai_2, x-H_Y-H_X*1, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai_1, x-H_Y-H_X*2, C_Y+400, rotate_all=rotate_all)
+            elif (fromwho-pid)%4 == 2: # 対面から鳴いていた場合
+                draw_hai(hai_2, x-H_X, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai_3, x-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+                draw_hai(hai_1, x-H_X-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
+            elif (fromwho-pid)%4 == 3: # 下家から鳴いていた場合
+                draw_hai(hai_2, x-H_X, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai_1, x-H_X-H_X, C_Y+400, rotate_all=rotate_all)
+                draw_hai(hai_3, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
+            x -= H_Y + H_X*2 + H_G
+
+    # 河を描画
+    x, y = C_X-H_X*3, C_Y + (H_X*6+H_G)/2
+    k_count = 0
+    for k in Player.kawa:
+        k_count += 1
+
+        if k[1]: # 立直牌の場合
+            draw_hai(k[0], x, y+(H_Y-H_X), iftrans=k[2], rotate=90, rotate_all=rotate_all)
+            x += H_Y
+        else: # 立直牌じゃない場合
+            draw_hai(k[0], x, y, iftrans=k[2], rotate=0, rotate_all=rotate_all)
+            x += H_X
+        
+        if k_count%6 == 0: # 河の段数をリセット
+            x = C_X-H_X*3 
+            y += (k_count//6)*H_Y
 
         # 立直棒を描画
 
@@ -244,13 +241,13 @@ clickmap = []
 
 def draw(Game: Mahjong):
     # ステージの描画
-    pygame.draw.rect(screen, GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側
+    pygame.draw.rect(screen, COLOR.GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側
     FUCHI_ = FUCHI-10
-    pygame.draw.rect(screen, TAKU, (FUCHI_, FUCHI_, SCREEN_H-FUCHI_*2, SCREEN_H-FUCHI_*2)) # 緑の卓
-    pygame.draw.rect(screen, RIGHT, (SCREEN_H, 0, 300, SCREEN_H)) # 右の操作画面
+    pygame.draw.rect(screen, COLOR.TAKU, (FUCHI_, FUCHI_, SCREEN_H-FUCHI_*2, SCREEN_H-FUCHI_*2)) # 緑の卓
+    pygame.draw.rect(screen, COLOR.RIGHT, (SCREEN_H, 0, 300, SCREEN_H)) # 右の操作画面
 
     kawa_w = H_X*6+H_G
-    pygame.draw.rect(screen, RIGHT, (C_X-kawa_w/2, C_Y-kawa_w/2, kawa_w, kawa_w)) # 真ん中のやつ
+    pygame.draw.rect(screen, COLOR.RIGHT, (C_X-kawa_w/2, C_Y-kawa_w/2, kawa_w, kawa_w)) # 真ん中のやつ
     
 
     # クリックマップを作製
@@ -258,11 +255,12 @@ def draw(Game: Mahjong):
     clickmap = []
     
     # 牌を描画する
-    draw_players()
+    for i in range(4):
+        draw_player(i)
     
     # デバッグ要素ゾ
     info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, capable_sousa_now={Game.capable_sousa_now}"
-    info_surf = font.render(info_tx, True, YELLOW)
+    info_surf = font.render(info_tx, True, COLOR.YELLOW)
     screen.blit(info_surf, (20, 20))
     
     # 可能なコマンドを箇条書きで描画する
@@ -271,11 +269,11 @@ def draw(Game: Mahjong):
         if Game.queue[0] == MY_PID: # 自分のときしか描画しないお！
             for i in Game.capable_sousa_now:
 
-                rect = pygame.draw.rect(screen, WHITE, (SCREEN_H + 30, y+1, 300-30*2, 28))
+                rect = pygame.draw.rect(screen, COLOR.WHITE, (SCREEN_H + 30, y+1, 300-30*2, 28))
                 clickmap.append((rect, i)) # クリックマップに登録
 
                 #csn_surf = cmd_font.render("  ".join(i[1:]), True, BLACK,)
-                csn_surf = cmd_font.render(f"{i}", True, BLACK,)
+                csn_surf = cmd_font.render(f"{i}", True, COLOR.BLACK)
                 
                 rect      = csn_surf.get_rect()   # ① まだ原点 (0,0)
                 rect.center = (SCREEN_H + 150, y+15)
