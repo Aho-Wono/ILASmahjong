@@ -53,6 +53,7 @@ H_G = 10 # 描画する牌の隙間
 
 FUCHI = (SCREEN_H-(C_Y+400)-H_Y)
 
+
 for hai in hai_path:
     raw_image = pygame.image.load(hai_path[hai]).convert_alpha()
     image_dic[hai] = pygame.transform.scale(raw_image, (raw_image.get_width()/shrink, raw_image.get_height()/shrink))
@@ -70,7 +71,7 @@ font = pygame.font.SysFont(None, 24)
 cmd_font = pygame.font.SysFont(None, 30)
 
 
-def draw_hai(hai, x, y, rotate=0, clm_mode = False): # 牌を描画する関数
+def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False): # 牌を描画する関数
     # XY軸をどの向きに設定するかで変換する
     theta = math.radians(rotate_all)
     x_converted = C_X + (x - C_X) * math.cos(theta) + (y - C_Y) * math.sin(theta)
@@ -89,12 +90,14 @@ def draw_hai(hai, x, y, rotate=0, clm_mode = False): # 牌を描画する関数
         # 背景の描画
         front = image_dic["front"]
         front =  pygame.transform.rotate(front, rotate)
+        if iftrans: front.set_alpha(128)        
         rect = front.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
         screen.blit(front, rect)
 
     # 牌の描画
     img = image_dic[hai]
     img = pygame.transform.rotate(img, rotate)
+    if iftrans: img.set_alpha(128)
     rect = img.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
     screen.blit(img, rect)
     if clm_mode:
@@ -211,8 +214,23 @@ def draw_players():
                 x -= H_Y + H_X*2 + H_G
 
         # 河を描画
+        x, y = C_X-H_X*3, C_Y + (H_X*6+H_G)/2
+        k_count = 0
+        for k in Player.kawa:
+            k_count += 1
 
+            if k[1]: # 立直牌の場合
+                draw_hai(k[0], x, y+(H_Y-H_X), iftrans=k[2], rotate=90)
+                x += H_Y
+            else: # 立直牌じゃない場合
+                draw_hai(k[0], x, y, iftrans=k[2], rotate=0)
+                x += H_X
+            
+            if k_count%6 == 0: # 河の段数をリセット
+                x = C_X-H_X*3 
+                y += (k_count//6)*H_Y
 
+        # 立直棒を描画
 
 
 def click_to_cmd(pos):
@@ -227,10 +245,12 @@ clickmap = []
 def draw(Game: Mahjong):
     # ステージの描画
     pygame.draw.rect(screen, GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側
-    FUCHI_ = FUCHI-5
+    FUCHI_ = FUCHI-10
     pygame.draw.rect(screen, TAKU, (FUCHI_, FUCHI_, SCREEN_H-FUCHI_*2, SCREEN_H-FUCHI_*2)) # 緑の卓
     pygame.draw.rect(screen, RIGHT, (SCREEN_H, 0, 300, SCREEN_H)) # 右の操作画面
-    pygame.draw.rect(screen, RIGHT, (C_X-150, C_Y-150, 300, 300)) # 真ん中のやつ
+
+    kawa_w = H_X*6+H_G
+    pygame.draw.rect(screen, RIGHT, (C_X-kawa_w/2, C_Y-kawa_w/2, kawa_w, kawa_w)) # 真ん中のやつ
     
 
     # クリックマップを作製

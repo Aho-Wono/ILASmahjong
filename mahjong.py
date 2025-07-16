@@ -278,12 +278,12 @@ class Mahjong():
 
             elif sousa == "kiru": # 普通に切るとき
                 Player.kiru(sousa_hai)
-                Player.kawa.append([sousa_hai, False])
+                Player.kawa.append([sousa_hai, False, False])
 
             elif sousa == "richi": # 立直
                 Player.tehai["menzen"].append(Player.tehai["tumo"])
                 Player.kiru(sousa_hai)
-                Player.kawa.append([sousa_hai, True])
+                Player.kawa.append([sousa_hai, True, False])
                 
             elif sousa == "tumo": # ツモ和了
                 self.agari_data.append({
