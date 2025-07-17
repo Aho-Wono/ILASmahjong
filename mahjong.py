@@ -393,10 +393,6 @@ class Mahjong():
     def dbg(self):
         return "\n".join([P.dbg() for P in self.players])
 
-    def finish_kyoku(self):
-        # 未作成！！！
-        printd("FINISHED")
-
     def step(self, cmd): # プレイヤー or AI の操作が必要になるまでゲームを進める
         # コマンドを実行する
         self.do_cmd(cmd)
