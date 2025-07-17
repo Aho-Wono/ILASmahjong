@@ -1,3 +1,4 @@
+import y_daisushi
 def ifzihai(s):
     if s == "ton" or s == "nan" or s == "sha" or s == "pei":
         return True
@@ -5,6 +6,8 @@ def ifzihai(s):
         return False
 
 def y_shosushi(PlayerInfo, menzen_pattern, agarihai):
+    if y_daisushi.y_daisushi(PlayerInfo, menzen_pattern, agarihai):
+        return False
     if len(menzen_pattern) == 7:
         return False
     cnt = 0

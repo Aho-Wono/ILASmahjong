@@ -38,15 +38,28 @@ def haikei(s:str):#2~8のときTrue, それいがいFalse
         return False
     return True
 
-def ryanmen(PlayerInfo, menzen_pattern, agarihai):
-    if len(agarihai) != 2:
+def ryanmen(menz_li, agarihai):
+    if menz_li[1] == agarihai:
         return False
-    flag = False
-    for menz in menzen_pattern:
-        flag_1 = False
-        for item in menz:
-            if item == agarihai:
-                flag_1 = True
+    if menz_li[0] == menz_li[1] and menz_li[1] == menz_li[2]:
+        return False
+    #あがり牌が大きい時を調べる。
+    if menz_li[2] == agarihai:
+        if agarihai[2] == '3':
+            return False
+        else:
+            return True
+    else: #小さいときをしらべる
+        if agarihai[2] == '7':
+            return False
+        else:
+            return True
+
+def syanpon(menz_li, agarihai):
+    if menz_li[0] == menz_li[1] and menz_li[1] == menz_li[2]:
+        return True
+    else:
+        return False
 
 def fukeisan(PlayerInfo, menzen_pattern, agarihai):
     if len(menzen_pattern) == 7:
@@ -86,3 +99,16 @@ def fukeisan(PlayerInfo, menzen_pattern, agarihai):
             else:
                 hai_count += 16
     #あとは両面とシャンポン待ちの判定をする。
+    mati_fl = False
+    for menz in menzen_pattern:
+        mati = True
+        if agarihai in menz:
+            if not ryanmen(menz, agarihai) and not syanpon(menz, agarihai):#両面待ちでもシャンポン待ちでもないものがあればよい。
+                mati = False
+        if not mati:
+            mati_fl = True
+    if mati_fl:
+        hai_count += 2
+    #四捨五入前の符計算は完了
+    ans = ((hai_count + 9) % 10) * 10
+    return ans
