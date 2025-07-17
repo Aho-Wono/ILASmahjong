@@ -13,13 +13,12 @@ def y_shosushi(PlayerInfo, menzen_pattern, agarihai):
     cnt = 0
     for menz in menzen_pattern:
         if len(menz) == 2:
-            continue
+            if not ifzihai(menz[0]):
+                return False
         if ifzihai(menz[0]):
             cnt += 1
     naki = PlayerInfo.tehai["naki"]
     for menz in naki:
-        if len(menz) == 2:
-            continue
         if ifzihai(menz[0][0]):
             cnt += 1
     if cnt == 3:
