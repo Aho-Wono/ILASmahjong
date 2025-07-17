@@ -1,5 +1,5 @@
 def y_suanko(PlayerInfo, menzen_pattern, agarihai):
-    if PlayerInfo.tumo == None:
+    if PlayerInfo.tehai["tumo"] == None:
         if menzen_pattern[len(menzen_pattern)-1][0] != agarihai:
             return False
     if PlayerInfo.ifnaki():
