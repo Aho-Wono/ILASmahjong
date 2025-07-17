@@ -6,7 +6,6 @@ class Phase(Enum): # ゲームのMAP値を定義
     WAIT_SELF    = auto() # ツモ直後／副露後
     WAIT_OTHERS = auto() # 打牌が確定した瞬間
     ROUND_END    = auto() # ツモ／ロン／流局が確定
-    ROUND_WAIT   = auto() # 次局待機
 # とりあえず1局まるまる遊べるようなものを作ります
 # プレイヤーの状況を包括するクラスを作成
 class PlayerInfo:
@@ -62,7 +61,7 @@ class PlayerInfo:
 
     def iffuriten(self):
         for wtt in self.what_to_tempai():
-            if wtt in self.kawa or wtt in self.ignored[1:]:
+            if (wtt in [h[0] for h in self.kawa]) or (wtt in self.ignored[:-1]):
                 return True
         return False
     
@@ -115,7 +114,7 @@ class Mahjong():
             Player.tehai["menzen"] = haipai
 
         if True:
-            self.players[0].tehai["menzen"] = "m1 m1 m1 m1 m2 m3 s2 s3 s4 s5 s6 s6 s6".split()
+            self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
 
         # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
         dora_omote = []
@@ -148,7 +147,7 @@ class Mahjong():
 
         self.phase = Phase.WAIT_SELF
         self.previous_cmd = [None, "kiru", None]
-        self.agari_data = [] # その局でだれが何をアガるかの変数
+        self.agari_data = None # その局でだれが何をアガるかの変数
         
         self.queue = [oya_id]
         self.capable_sousa_now = self.get_capable_sousa_now()
@@ -208,7 +207,7 @@ class Mahjong():
                 if not OtherPlayer.iffuriten(): # フリテン判定を行う
                     if yaku.agari_capable(OtherPlayer, sousa_hai, self.previous_cmd[1]):
                         capable_sousa_li.append([i_op, "ron", sousa_hai])
-                    
+                
                 if OtherPlayer.ifrichi(): continue # 立直していればロン判定のみで切り上げる
                 
                 # 立直してない場合
@@ -284,7 +283,8 @@ class Mahjong():
                 Player.tehai["naki"].append([[sousa_hai, self.whoturn] for i in range(4)])
                 info.edit("kancount", info.read()["kancount"] + 1)
                 
-            elif sousa == "kakan": # 明槓   
+            elif sousa == "kakan": # 明槓
+                for i in range(1):  Player.kiru(sousa_hai)
                 # 該当牌のインデックスの取得
                 for k_index, n in enumerate(Player.tehai["naki"]):
                     if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
@@ -308,12 +308,12 @@ class Mahjong():
                 
             elif sousa == "tumo": # ツモ和了
                 by = yaku.best_yaku(Player, Player.tehai["tumo"], self.previous_cmd[1])
-                self.agari_data.append({
+                self.agari_data = {
                     "whoagari": self.whoturn,
                     "whoagarare": None,
                     "tehai": Player.tehai,
                     "yaku": by[1],
-                    "mentu_pattern": by[0]})
+                    "mentu_pattern": by[0]}
 
             elif sousa == "pon": # ポンの場合
                 for i in range(2): Player.kiru(sousa_hai)
@@ -348,14 +348,14 @@ class Mahjong():
                     [sousa_hai, self.whoturn],])
                 
             elif sousa == "ron": # ロン和了
-                by = yaku.best_yaku(Player, Player.tehai["tumo"], self.previous_cmd[1])
+                by = yaku.best_yaku(Player, sousa_hai, self.previous_cmd[1])
 
-                self.agari_data.append({
+                self.agari_data = {
                     "whoagari": p_id,
                     "whoagarare": self.whoturn,
                     "tehai": Player.tehai,
                     "yaku": by[1],
-                    "mentu_pattern": by[0]})
+                    "mentu_pattern": by[0]}
                 
         # フェーズ・キューの更新
         if sousa == "ignore":
@@ -392,10 +392,6 @@ class Mahjong():
 
     def dbg(self):
         return "\n".join([P.dbg() for P in self.players])
-
-    def finish_kyoku(self):
-        # 未作成！！！
-        printd("FINISHED")
 
     def step(self, cmd): # プレイヤー or AI の操作が必要になるまでゲームを進める
         # コマンドを実行する
@@ -441,13 +437,8 @@ class Mahjong():
 
             # 局が終わった
             if self.phase == Phase.ROUND_END:
-                self.finish_kyoku()   # 点棒移動・親流し・新局生成
-                self.phase == Phase.ROUND_WAIT
                 return
 
-            # 次の局待機
-            if self.phase == Phase.ROUND_WAIT:
-                printd("WAITING NEXT ROUND", end=" ")
 
             # 定義漏れ
             raise RuntimeError(f"未知フェーズ {self.phase}")

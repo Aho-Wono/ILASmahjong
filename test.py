@@ -1,5 +1,16 @@
+li = [1,2,3]
+
+li_cp = li[:]
+
+li_cp.pop(0)
+
+print(li)
+
+
+
 
 if False:
+
     
     # 半荘の開始
     printd("HANCHAN STARTED")

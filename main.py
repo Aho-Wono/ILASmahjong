@@ -192,24 +192,24 @@ def draw_player(pid):
                         draw_hai(hai, x-H_X-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
                     x -= H_Y + H_X*3 + H_G
                         
-                elif naki[3][1] != pid: # 加槓
+                elif naki[3][1] == pid: # 加槓
                     fromwho = naki[2][1]
                     mod4 = (fromwho-pid)%4
                     if mod4 == 1: # 上家から鳴いていた場合
                         draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
-                        draw_hai(hai, x-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y, C_Y+400+H_XY-H_X, rotate=90, rotate_all=rotate_all)
                         draw_hai(hai, x-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_Y-H_X-H_X, C_Y+400, rotate_all=rotate_all)
                     elif mod4 == 2: # 対面から鳴いていた場合
                         draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
-                        draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY-H_X, rotate=90, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
                     elif mod4 == 3: # 下家から鳴いていた場合
                         draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
-                        draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY-H_X, rotate=90, rotate_all=rotate_all)
                     x -= H_Y + H_X*2 + H_G
         elif len(naki) == 3 and [n[0] for n in naki].count(naki[0][0]) == 3: # ポンのとき
             hai = naki[0][0]
@@ -270,21 +270,16 @@ def draw_player(pid):
     # ここからプレイヤーのみの描画
     if pid == MY_PID:
         # デバッグ描画
-        info_tx = f"ignored={" ".join(Player.ignored)}"
+        info_tx = f"ignored={" ".join(Player.ignored[:-1])}"
         info_surf = font.render(info_tx, True, COLOR.YELLOW)
         screen.blit(info_surf, (C_X+20, C_Y+20))
-
+        
         # 何待ちか描画
         wtt = Player.what_to_tempai()
         x = 300/(len(wtt)+1)
         for i, hai in enumerate(wtt):
-            draw_node(image_dic["front"], SCREEN_H+x*(i+1), C_Y+400-H_Y/2)
-            draw_node(image_dic[hai], SCREEN_H+x*(i+1), C_Y+400-H_Y/2)
-        
-        
-
-
-
+            draw_node(image_dic["front"], SCREEN_H+x*(i+1), C_Y+400+H_Y/2-1)
+            draw_node(image_dic[hai], SCREEN_H+x*(i+1), C_Y+400+H_Y/2-1)
 
 def click_to_cmd(pos):
     # クリックした座標からコマンドを返すイメージ
@@ -313,8 +308,8 @@ def draw():
         draw_player(i)
     
     # デバッグ要素ゾ
-    info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, capable_sousa_now={Game.capable_sousa_now}"
-    info_surf = font.render(info_tx, True, COLOR.YELLOW)
+    info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, GAMESTATE={game_state}"
+    info_surf = font.render(info_tx, True, COLOR.BLACK)
     screen.blit(info_surf, (20, 20))
     
     # 可能なコマンドを箇条書きで描画する
@@ -382,6 +377,7 @@ waiting_ai = False
 STATE_TITLE  = 0
 STATE_PLAY   = 1
 STATE_RESULT = 2
+STATE_RESET  = 3
 
 game_state = STATE_TITLE
 
@@ -406,13 +402,17 @@ while running: # ここがtkinterでいうとこのmainloop()
                 AI_PIDS = [1,2,3]
             continue        # タイトル中は他イベント無視
 
-        if game_state == STATE_RESULT: # 結果表示
+        if game_state == STATE_RESULT: # 結果待ち
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
-                Game.reset_kyoku() # ゲーム情報をリセットし次の局へ行く
-                # 未作成！！！（点棒移動やとび計算・終局判定）
+                game_state = STATE_RESET
+            continue
+
+        if game_state == STATE_RESET:
+            if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
                 game_state = STATE_PLAY
-            continue        # RESULT 中はクリック等を無視
-        
+            continue
+
+
 
         # --------- ここから対局中 (STATE_PLAY) ---------
         if game_state == STATE_PLAY:  
@@ -437,14 +437,22 @@ while running: # ここがtkinterでいうとこのmainloop()
         Game.step(cmd) # None なら自動進行だけ
 
         if Game.phase == Phase.ROUND_END: # ゲームが終了すればその局の結果開示に移る
-            game_state == STATE_RESULT
+            game_state = STATE_RESULT
+    if game_state == STATE_RESULT:
+        # agaridataを取得し、アガったひとの手を開示する or テンパイのひとの手を開示し、点数を表示する
+        printd(Game.agari_data)
+        # 未作成！！！！
+    if game_state == STATE_RESET:
+        # 点数移動・リセットを行う
+        # 未作成！！！
+        Game.reset_kyoku()
 
     # 描画
     if game_state == STATE_PLAY:
         draw()
     if game_state == STATE_RESULT:
         draw_result()
-    elif game_state == STATE_TITLE:
+    if game_state == STATE_TITLE:
         draw_title()
 
 

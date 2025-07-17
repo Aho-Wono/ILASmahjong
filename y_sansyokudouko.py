@@ -21,8 +21,7 @@ def y_sansyokudouko(PlayerInfo, menzen_pattern, agarihai):
     else:
         for k in kensa:
             for l in range(3):
-                k[l] = k[l][1]
-                kazukensa.append(k[l])
+                kazukensa.append(k[l][1])
         for kazu in kazukensa:
             if kazu == kazukensa[0]:
                 hantei += 1
