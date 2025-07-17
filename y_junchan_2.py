@@ -3,23 +3,21 @@ def y_junchan_2(PlayerInfo, menzen_pattern, agarihai):
         return False
     if len(menzen_pattern) == 7:
         return False
-    flag = True
     for menz in menzen_pattern:
-        flag_1 = False
+        flag = True
         for item in menz:
             if len(item) == 2:
                 if item[1] == '1' or item[1] == '9':
-                    flag_1 = True
-        flag = flag_1
+                    flag = False
+        if flag:
+            return False
     naki = PlayerInfo.tehai["naki"]
     for menz in naki:
-        flag_1 = False
+        flag = True
         for item in menz:
             if len(item[0]) == 2:
                 if item[0][1] == '1' or item[0][1] == '9':
-                    flag_1 = True
-        flag = flag_1
-    if flag:
-        return "純全帯么九_2"
-    else:
-        return False
+                    flag = False
+        if flag:
+            return False
+    return "純全帯么九_2"
