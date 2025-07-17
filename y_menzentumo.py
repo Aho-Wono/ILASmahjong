@@ -7,7 +7,7 @@ def y_menzentumo(PlayerInfo, menzen_pattern, agarihai):
     for n in naki: # 誰かからひとつでも鳴いてたらFalse
         fromwho_li = [nn[1] for nn in n]
         for f in fromwho_li:
-            if f != fromwho_li: result == False
+            if f != fromwho_li: result = False
 
     if tumo == None: result = False # ツモってなかったらFalse
 
