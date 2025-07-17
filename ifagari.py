@@ -142,6 +142,12 @@ def ifagari(tehai=None):
     
     return agari
 
+def what_to_agari(tehai):
+    wta_li = []
+    for hai in ALL_HAI:
+        if ifagari(tehai + [hai]):
+            wta_li.append(hai)
+    return wta_li
 
 
 #以下、デバッグ用

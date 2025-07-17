@@ -93,13 +93,14 @@ def teyaku_li():
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
 
+# デバッグ用print関数
 def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
     if False:
         print(*args, sep=sep, end=end, file=file, flush=flush)
 
 
 # いろんなデータを渡して、役の組み合わせを出力する関数
-def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
+def yaku(PlayerInfo, agarihai, sousa=None, mpmode= False): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     #debug.printd("[yaku fn roaded]")
     #debug.printd(PlayerInfo.dbg(), agarihai, sousa)
     
@@ -123,7 +124,7 @@ def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツ�
             integrated_tehai.extend([n[0][0], n[0][0], n[0][0]])
     integrated_tehai.append(agarihai)
     yaku_printd("integrated: ", integrated_tehai)
-    if not ifagari.ifagari(integrated_tehai):
+    if not ifagari.ifagari(integrated_tehai): # そもそも渡されたデータがアガリ形やなかった場合
         return yaku_pattern_li
     else: yaku_printd("ifagari is valuable.")
 
@@ -184,8 +185,10 @@ def yaku(PlayerInfo, agarihai, sousa=None): # 引数は二つ、ロンでもツ�
                     yaku_pattern.append(result)
         yaku_printd("yaku_pattern:", yaku_pattern)
 
-        yaku_pattern_li.append(yaku_pattern)
-        
+        if mpmode:
+            yaku_pattern_li.append([menzen_pattern, yaku_pattern])
+        else:
+            yaku_pattern_li.append(yaku_pattern)    
 
     yaku_printd(f"yaku_pattern_li: {yaku_pattern_li}")
     return yaku_pattern_li
@@ -201,18 +204,21 @@ def agari_capable(PlayerInfo, agarihai, sousa):
             ag_cp = True
     return ag_cp
 
-# 役の組み合わせからどれが最も役数が高くなるか言ってくれるやつ～
+# 役の組み合わせからどれが最も役数が高くなるか言ってくれるやつ～（点数処理の関係でベスト時のmenzen_patternも返すような関数にします）
 def best_yaku(PlayerInfo, agarihai, sousa):
-    yaku_pattern_li = yaku(PlayerInfo, agarihai, sousa)
-    if len(yaku_pattern_li) == 0: return None # そもそも役がなければNoneを返す
-    max_yp = None
+    yaku_pattern_li_and_mentsu_pattern = yaku(PlayerInfo, agarihai, sousa, mpmode=True)
+    
+    if len(yaku_pattern_li_and_mentsu_pattern) == 0: return None # そもそも役がなければNoneを返す
+    max_yp_mp = None
     max_hansu = 0
-    for yp in yaku_pattern_li:
+    for yplamp in yaku_pattern_li_and_mentsu_pattern:
+        yp = yplamp[1]
         hansu = 0
         for y in yp:
             hansu += yaku_dic[y]["hansu"]
-        if hansu >= max_hansu: max_yp = yp
-    return max_yp
+        if hansu >= max_hansu: 
+            max_yp_mp = yplamp
+    return max_yp_mp
     # 未作成！
 
 if __name__ == "__main__":

@@ -61,16 +61,16 @@ class PlayerInfo:
         self.tehai["menzen"].remove(hai)
 
     def iffuriten(self):
-        what_to_tempai = []
-        for hai in self.ALL_HAI:
-            if ifagari.ifagari(self.menzen_li() + [hai]):
-                what_to_tempai.append(hai)
-        
-        for wtt in what_to_tempai:
+        for wtt in self.what_to_tempai():
             if wtt in self.kawa or wtt in self.ignored[1:]:
                 return True
-            
         return False
+    
+    def what_to_tempai(self):
+        if self.tehai["tumo"] == None:
+            return ifagari.what_to_agari(self.menzen_li())
+        else:
+            return ifagari.what_to_agari(self.tehai["menzen"])
 
 import ifagari
 import info
@@ -115,7 +115,7 @@ class Mahjong():
             Player.tehai["menzen"] = haipai
 
         if True:
-            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m2 m2 m3 m3 m3 m4 m4 m4 m1".split()
+            self.players[0].tehai["menzen"] = "m1 m1 m1 m1 m2 m3 s2 s3 s4 s5 s6 s6 s6".split()
 
         # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
         dora_omote = []
@@ -299,7 +299,6 @@ class Mahjong():
                     if P.ifrichi():
                         P.ignored.append(sousa_hai)
             elif sousa == "richi": # 立直
-                Player.tehai["menzen"].append(Player.tehai["tumo"])
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, True, False])
                 
@@ -308,11 +307,13 @@ class Mahjong():
                         P.ignored.append(sousa_hai)
                 
             elif sousa == "tumo": # ツモ和了
+                by = yaku.best_yaku(Player, Player.tehai["tumo"], self.previous_cmd[1])
                 self.agari_data.append({
                     "whoagari": self.whoturn,
                     "whoagarare": None,
                     "tehai": Player.tehai,
-                    "yaku":  yaku.best_yaku(Player, Player.tehai["tumo"], self.previous_cmd[1]), })
+                    "yaku": by[1],
+                    "mentu_pattern": by[0]})
 
             elif sousa == "pon": # ポンの場合
                 for i in range(2): Player.kiru(sousa_hai)
@@ -347,12 +348,15 @@ class Mahjong():
                     [sousa_hai, self.whoturn],])
                 
             elif sousa == "ron": # ロン和了
+                by = yaku.best_yaku(Player, Player.tehai["tumo"], self.previous_cmd[1])
+
                 self.agari_data.append({
                     "whoagari": p_id,
                     "whoagarare": self.whoturn,
                     "tehai": Player.tehai,
-                    "yaku":  yaku.best_yaku(Player, sousa_hai, self.previous_cmd[1]), })
-
+                    "yaku": by[1],
+                    "mentu_pattern": by[0]})
+                
         # フェーズ・キューの更新
         if sousa == "ignore":
             self.queue.pop(0) # キューをひとつ削除
@@ -401,6 +405,11 @@ class Mahjong():
         while True:
             # ツモが必要
             if self.phase == Phase.NEED_DRAW:
+                # ツモろうにも残り牌がなかったら局を終了する
+                if len(self.YAMA) <= 4: # 残り牌が4敗以下（王牌を考慮して）になったらループを終わらせる
+                    self.phase == Phase.ROUND_END
+                    continue
+
                 # ツモらせる操作
                 if self.previous_cmd[1] not in ["ankan", "kakan"]:
                     self.whoturn = (self.whoturn + 1) % 4 # カンのあとでなければ下家にターンをゆずる

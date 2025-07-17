@@ -146,12 +146,6 @@ def draw_player(pid):
         clm_mode_tumo = False
 
 
-    if pid == MY_PID:
-        # デバッグ描画
-        info_tx = f"ignored={Player.ignored}"
-        info_surf = font.render(info_tx, True, COLOR.YELLOW)
-        screen.blit(info_surf, (C_X+20, C_Y+20))
-
 
     # 面前牌を描画
     x = FUCHI + H_X*2 + H_G
@@ -267,11 +261,30 @@ def draw_player(pid):
         
         if k_count%6 == 0: # 河の段数をリセット
             x = C_X-H_X*3 
-            y += (k_count//6)*H_Y
+            y += H_Y
 
     # 立直棒を描画
     if Player.ifrichi():
         draw_node(image_dic["richibo"], C_X, C_Y+H_X*3-H_G, rotate_all=rotate_all)
+
+    # ここからプレイヤーのみの描画
+    if pid == MY_PID:
+        # デバッグ描画
+        info_tx = f"ignored={" ".join(Player.ignored)}"
+        info_surf = font.render(info_tx, True, COLOR.YELLOW)
+        screen.blit(info_surf, (C_X+20, C_Y+20))
+
+        # 何待ちか描画
+        wtt = Player.what_to_tempai()
+        x = 300/(len(wtt)+1)
+        for i, hai in enumerate(wtt):
+            draw_node(image_dic["front"], SCREEN_H+x*(i+1), C_Y+400-H_Y/2)
+            draw_node(image_dic[hai], SCREEN_H+x*(i+1), C_Y+400-H_Y/2)
+        
+        
+
+
+
 
 def click_to_cmd(pos):
     # クリックした座標からコマンドを返すイメージ
@@ -422,6 +435,9 @@ while running: # ここがtkinterでいうとこのmainloop()
                 launch_ai()
                 
         Game.step(cmd) # None なら自動進行だけ
+
+        if Game.phase == Phase.ROUND_END: # ゲームが終了すればその局の結果開示に移る
+            game_state == STATE_RESULT
 
     # 描画
     if game_state == STATE_PLAY:
