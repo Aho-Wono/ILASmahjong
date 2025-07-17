@@ -359,14 +359,15 @@ async def start_ai():
     printd("START AI THINKING")
     await asyncio.sleep(0.5) # とりま待たせる
 
-    # 河原依頼
-    import chappy_choice
-    situations = {
-        "kawa_li": None,
-        "tehai": None,
-    }
-    playerinfo_li = Game.players
-    AI_cmd = chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do) # 待機時間が発生する関数
+    if False:
+        # 河原依頼
+        import chappy_choice
+        situations = {
+            "kawa_li": None,
+            "tehai": None,
+        }
+        playerinfo_li = Game.players
+        AI_cmd = chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do) # 待機時間が発生する関数
 
 
     AI_cmd = random.choice(what_ai_can_do)
