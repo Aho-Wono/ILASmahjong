@@ -192,24 +192,24 @@ def draw_player(pid):
                         draw_hai(hai, x-H_X-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
                     x -= H_Y + H_X*3 + H_G
                         
-                elif naki[3][1] != pid: # 加槓
+                elif naki[3][1] == pid: # 加槓
                     fromwho = naki[2][1]
                     mod4 = (fromwho-pid)%4
                     if mod4 == 1: # 上家から鳴いていた場合
                         draw_hai(hai, x-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
-                        draw_hai(hai, x-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_Y, C_Y+400+H_XY-H_X, rotate=90, rotate_all=rotate_all)
                         draw_hai(hai, x-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_Y-H_X-H_X, C_Y+400, rotate_all=rotate_all)
                     elif mod4 == 2: # 対面から鳴いていた場合
                         draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
-                        draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_Y, C_Y+400+H_XY-H_X, rotate=90, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_Y-H_X, C_Y+400, rotate_all=rotate_all)
                     elif mod4 == 3: # 下家から鳴いていた場合
                         draw_hai(hai, x-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_X, C_Y+400, rotate_all=rotate_all)
                         draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY, rotate=90, rotate_all=rotate_all)
-                        draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY+H_X, rotate=90, rotate_all=rotate_all)
+                        draw_hai(hai, x-H_X-H_X-H_Y, C_Y+400+H_XY-H_X, rotate=90, rotate_all=rotate_all)
                     x -= H_Y + H_X*2 + H_G
         elif len(naki) == 3 and [n[0] for n in naki].count(naki[0][0]) == 3: # ポンのとき
             hai = naki[0][0]
@@ -273,13 +273,13 @@ def draw_player(pid):
         info_tx = f"ignored={" ".join(Player.ignored[:-1])}"
         info_surf = font.render(info_tx, True, COLOR.YELLOW)
         screen.blit(info_surf, (C_X+20, C_Y+20))
-
+        
         # 何待ちか描画
         wtt = Player.what_to_tempai()
         x = 300/(len(wtt)+1)
         for i, hai in enumerate(wtt):
-            draw_node(image_dic["front"], SCREEN_H+x*(i+1), C_Y+400-H_Y/2)
-            draw_node(image_dic[hai], SCREEN_H+x*(i+1), C_Y+400-H_Y/2)
+            draw_node(image_dic["front"], SCREEN_H+x*(i+1), C_Y+400+H_Y/2-1)
+            draw_node(image_dic[hai], SCREEN_H+x*(i+1), C_Y+400+H_Y/2-1)
 
 def click_to_cmd(pos):
     # クリックした座標からコマンドを返すイメージ

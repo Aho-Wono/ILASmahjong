@@ -61,7 +61,7 @@ class PlayerInfo:
 
     def iffuriten(self):
         for wtt in self.what_to_tempai():
-            if wtt in self.kawa or wtt in self.ignored[:-1]:
+            if (wtt in [h[0] for h in self.kawa]) or (wtt in self.ignored[:-1]):
                 return True
         return False
     
@@ -114,7 +114,7 @@ class Mahjong():
             Player.tehai["menzen"] = haipai
 
         if True:
-            self.players[0].tehai["menzen"] = "m1 m1 m1 m1 m2 m3 s2 s3 s4 s5 s6 s6 s6".split()
+            self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
 
         # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
         dora_omote = []
@@ -207,7 +207,7 @@ class Mahjong():
                 if not OtherPlayer.iffuriten(): # フリテン判定を行う
                     if yaku.agari_capable(OtherPlayer, sousa_hai, self.previous_cmd[1]):
                         capable_sousa_li.append([i_op, "ron", sousa_hai])
-                    
+                
                 if OtherPlayer.ifrichi(): continue # 立直していればロン判定のみで切り上げる
                 
                 # 立直してない場合
@@ -283,7 +283,8 @@ class Mahjong():
                 Player.tehai["naki"].append([[sousa_hai, self.whoturn] for i in range(4)])
                 info.edit("kancount", info.read()["kancount"] + 1)
                 
-            elif sousa == "kakan": # 明槓   
+            elif sousa == "kakan": # 明槓
+                for i in range(1):  Player.kiru(sousa_hai)
                 # 該当牌のインデックスの取得
                 for k_index, n in enumerate(Player.tehai["naki"]):
                     if [nn[0] for nn in n] == [sousa_hai for i in range(3)]:
