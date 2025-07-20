@@ -1,5 +1,5 @@
 import os
-import re
+import random
 from dotenv import load_dotenv
 import openai
 
@@ -49,4 +49,5 @@ def chappy_choice(situations , what_ai_can_do):
         selected_action = what_ai_can_do[int(answer)]
     except:
         print("chappy_choice error")
+        selected_action = random.choice(what_ai_can_do)
     return selected_action
