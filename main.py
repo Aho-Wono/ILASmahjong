@@ -9,6 +9,8 @@ import queue
 import getdir
 import ripai
 import math
+import info
+import tensukeisan
 
 
 DIR = getdir.dir()
@@ -87,7 +89,7 @@ def draw_node(img, x, y, rotate_all = 0, clm_cmd = None, anchor = "center"):
 
     img = pygame.transform.rotate(img, rotate_all)        
     rect = img.get_rect()
-    rect.center = (x_converted, y_converted)
+    setattr(rect, anchor, (x_converted, y_converted))
     screen.blit(img, rect)
 
     # クリックマップへの登録
@@ -144,8 +146,6 @@ def draw_player(pid):
     else:
         clm_mode_menzen = False
         clm_mode_tumo = False
-
-
 
     # 面前牌を描画
     x = FUCHI + H_X*2 + H_G
@@ -267,6 +267,11 @@ def draw_player(pid):
     if Player.ifrichi():
         draw_node(image_dic["richibo"], C_X, C_Y+H_X*3-H_G, rotate_all=rotate_all)
 
+    # 点数を描画
+    score = info.read()["score"][pid]
+    score_surf = font.render(str(score), True, COLOR.BLACK)
+    draw_node(score_surf, C_X, C_Y+80, rotate_all=rotate_all)
+
     # ここからプレイヤーのみの描画
     if pid == MY_PID:
         # デバッグ描画
@@ -298,14 +303,21 @@ def draw():
     kawa_w = H_X*6+H_G
     pygame.draw.rect(screen, COLOR.RIGHT, (C_X-kawa_w/2, C_Y-kawa_w/2, kawa_w, kawa_w)) # 真ん中のやつ
     
-
     # クリックマップを作製
     global clickmap
     clickmap = []
     
-    # 牌を描画する
+    # プレーヤー関連情報を描画する
     for i in range(4):
         draw_player(i)
+    
+    # 局情報を描画
+    kyoku = info.read()["kyoku"]
+    hon = info.read()["hon"]
+    kyoku_surf = font.render(kyoku, True, COLOR.BLACK)
+
+
+
     
     # デバッグ要素ゾ
     info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, GAMESTATE={game_state}"
@@ -453,8 +465,10 @@ while running: # ここがtkinterでいうとこのmainloop()
     if game_state == STATE_RESULT:
         # agaridataを取得し、アガったひとの手を開示する or テンパイのひとの手を開示し、点数を表示する
         printd(Game.agari_data)
+
         # 未作成！！！！
     if game_state == STATE_RESET:
+
         # 点数移動・リセットを行う
         # 未作成！！！
         Game.reset_kyoku()
