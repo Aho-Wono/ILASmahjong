@@ -357,9 +357,9 @@ async def start_ai():
     what_ai_can_do = Game.capable_sousa_now
     printd("AI can do", what_ai_can_do)
     printd("START AI THINKING")
-    #await asyncio.sleep(0.1) # とりま待たせる
+    await asyncio.sleep(0.5) # とりま待たせる
 
-    if True:
+    if False:
         # 河原依頼
         import chappy_choice
         situations = {
@@ -373,7 +373,7 @@ async def start_ai():
         situations["tehai"] = playerinfo_li[Game.whoturn].tehai
         situations["naki"] = [playerinfo_li[0].tehai["naki"] , playerinfo_li[1].tehai["naki"] , playerinfo_li[2].tehai["naki"] , playerinfo_li[3].tehai["naki"]]
         AI_cmd = chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do) # 待機時間が発生する関数
-
+    AI_cmd = random.choice(what_ai_can_do)
 
     printd("FINISH AI THINKING")
 
