@@ -76,7 +76,9 @@ class COLOR():
     RIGHT = (0, 96*3/2, 0)
 
 # pygameで使ういろんな変数をここで定義する
-font = pygame.font.SysFont(None, 24)
+font = pygame.font.SysFont(None, 32)
+font_jp = pygame.font.SysFont("Meiryo", 20)
+font_jp.set_bold(True)
 cmd_font = pygame.font.SysFont(None, 30)
 
 clickmap = []
@@ -95,7 +97,6 @@ def draw_node(img, x, y, rotate_all = 0, clm_cmd = None, anchor = "center"):
     # クリックマップへの登録
     if clm_cmd != None:
         clickmap.append(rect, clm_cmd)
-
 
 def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False, rotate_all = 0): # 牌を描画する関数 
     
@@ -269,7 +270,7 @@ def draw_player(pid):
 
     # 点数を描画
     score = info.read()["score"][pid]
-    score_surf = font.render(str(score), True, COLOR.BLACK)
+    score_surf = font.render(str(score), True, COLOR.YELLOW)
     draw_node(score_surf, C_X, C_Y+80, rotate_all=rotate_all)
 
     # ここからプレイヤーのみの描画
@@ -300,8 +301,10 @@ def draw():
     pygame.draw.rect(screen, COLOR.TAKU, (FUCHI_, FUCHI_, SCREEN_H-FUCHI_*2, SCREEN_H-FUCHI_*2)) # 緑の卓
     pygame.draw.rect(screen, COLOR.RIGHT, (SCREEN_H, 0, 300, SCREEN_H)) # 右の操作画面
 
+    # 真ん中のやつ
     kawa_w = H_X*6+H_G
-    pygame.draw.rect(screen, COLOR.RIGHT, (C_X-kawa_w/2, C_Y-kawa_w/2, kawa_w, kawa_w)) # 真ん中のやつ
+    rect = pygame.Rect(C_X-kawa_w/2, C_Y-kawa_w/2, kawa_w, kawa_w)   # 四角形の領域
+    pygame.draw.rect(screen, COLOR.RIGHT, rect, border_radius=10)
     
     # クリックマップを作製
     global clickmap
@@ -311,11 +314,21 @@ def draw():
     for i in range(4):
         draw_player(i)
     
-    # 局情報を描画
-    kyoku = info.read()["kyoku"]
-    hon = info.read()["hon"]
-    kyoku_surf = font.render(kyoku, True, COLOR.BLACK)
 
+
+
+    # 局情報を描画
+    w2 = 120
+    rect = pygame.Rect(C_X-w2/2, C_Y-w2/2, w2, w2)   # 四角形の領域
+    pygame.draw.rect(screen, COLOR.GRAY, rect, border_radius=20)
+
+    kyoku = info.read()["kyoku"]
+    kyoku = {"t": "東", "n":"南"}[kyoku[0]] + str(kyoku[1]) + "局"
+    hon = str(info.read()["hon"]) + "本場"
+    kyoku_surf = font_jp.render(kyoku, True, COLOR.WHITE)
+    hon_surf = font_jp.render(hon, True, COLOR.WHITE)
+    draw_node(kyoku_surf, C_X, C_Y, anchor="midbottom")
+    draw_node(hon_surf, C_X, C_Y, anchor="midtop")
 
 
     
