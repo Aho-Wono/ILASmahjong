@@ -430,8 +430,12 @@ async def start_ai():
             chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do), # 待機時間が発生する関数
                 timeout=0.5)
         except asyncio.TimeoutError:
-            print("ChatGPT Timeout")
+            printd("ChatGPT Timeout")
             AI_cmd = random.choice(what_ai_can_do)
+        except Exception:
+            printd("ChatGPT Error")
+            AI_cmd = random.choice(what_ai_can_do)
+        
 
     printd("FINISH AI THINKING")
 
