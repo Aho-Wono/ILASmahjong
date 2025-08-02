@@ -11,7 +11,7 @@ def tensukeisan(Game:Mahjong):
     #"tehai": Player.tehai,
     #"yaku": by[1],
     #"mentu_pattern": by[0]})
-
+    
     aga_per = agari_data["whoagari"]
     make_per = agari_data["whoagarare"]
     yaku_list = agari_data["yaku"]

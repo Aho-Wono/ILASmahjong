@@ -424,7 +424,6 @@ async def start_ai():
         situations["tehai"] = playerinfo_li[Game.whoturn].tehai
         situations["naki"] = [playerinfo_li[0].tehai["naki"] , playerinfo_li[1].tehai["naki"] , playerinfo_li[2].tehai["naki"] , playerinfo_li[3].tehai["naki"]]
         
-        printd(what_ai_can_do)
         try:
             AI_cmd = await asyncio.wait_for(
             chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do), # 待機時間が発生する関数

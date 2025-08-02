@@ -114,7 +114,7 @@ class Mahjong():
             Player.tehai["menzen"] = haipai
 
         if True:
-            self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
+            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m3 s1 s2 s3 s1 s2 s3 p3 p2".split()
 
         # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
         dora_omote = []
