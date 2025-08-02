@@ -366,8 +366,23 @@ def draw_result():
     info_surf = font.render(info_tx, True, COLOR.YELLOW)
     screen.blit(info_surf, (20, 50))
 
-    
 
+    # 点数の表示
+    result = tensukeisan.tensukeisan(Game)
+    
+    fuhan = f"{result[1]}符 {result[2]}翻"
+    fuhan_surf = font_jp.render(fuhan, True, COLOR.WHITE)
+    draw_node(fuhan_surf, SCREEN_H + 30, 30+1, anchor="topleft")
+
+    tensu_li = sorted(result[0])
+    if tensu_li.count(0) == 2: # 放銃の場合
+        tensu = f"{max(tensu_li)}"
+    elif tensu_li.count(tensu_li[0]) == 3: # 親のツモの場合
+        tensu = f"{-tensu_li[0]}オール"
+    else:
+        tensu = f"{-tensu_li[1]}・{-tensu_li[0]}" # 子のツモの場合
+    tensu_surf = font_jp.render(tensu, True, COLOR.WHITE)
+    draw_node(tensu_surf, SCREEN_H + 30, 30+30+1, anchor="topleft")
 
 def draw_title():
     # ステージの描画
@@ -409,10 +424,14 @@ async def start_ai():
         situations["tehai"] = playerinfo_li[Game.whoturn].tehai
         situations["naki"] = [playerinfo_li[0].tehai["naki"] , playerinfo_li[1].tehai["naki"] , playerinfo_li[2].tehai["naki"] , playerinfo_li[3].tehai["naki"]]
         
-        print(situations)
-        print(what_ai_can_do)
-        AI_cmd = await chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do) # 待機時間が発生する関数
-    #AI_cmd = random.choice(what_ai_can_do)
+        printd(what_ai_can_do)
+        try:
+            AI_cmd = await asyncio.wait_for(
+            chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do), # 待機時間が発生する関数
+                timeout=0.5)
+        except asyncio.TimeoutError:
+            print("ChatGPT Timeout")
+            AI_cmd = random.choice(what_ai_can_do)
 
     printd("FINISH AI THINKING")
 
@@ -427,7 +446,6 @@ def launch_ai():
 
 
 AI_DONE = pygame.USEREVENT + 1 
-clock = pygame.time.Clock()
 
 waiting_ai = False
 
@@ -496,12 +514,8 @@ while running: # ここがtkinterでいうとこのmainloop()
         if Game.phase == Phase.ROUND_END: # ゲームが終了すればその局の結果開示に移る
             game_state = STATE_RESULT
     if game_state == STATE_RESULT:
-        # agaridataを取得し、アガったひとの手を開示する or テンパイのひとの手を開示し、点数を表示する
-        printd(Game.agari_data)
-
-        # 未作成！！！！
+        pass # 徳にすることねぇ    
     if game_state == STATE_RESET:
-
         # 点数移動・リセットを行う
         # 未作成！！！
         Game.reset_kyoku()

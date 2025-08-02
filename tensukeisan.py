@@ -1,18 +1,25 @@
 import info
 from yaku import yaku_dic
 import fukeisan
+from mahjong import Mahjong
 
-def tensukeisan(agari_data):
+def tensukeisan(Game:Mahjong):
+    agari_data = Game.agari_data
     # info.getoya() で親確認できる
     #"whoagari": p_id,
     #"whoagarare": self.whoturn,
     #"tehai": Player.tehai,
     #"yaku": by[1],
     #"mentu_pattern": by[0]})
+
     aga_per = agari_data["whoagari"]
     make_per = agari_data["whoagarare"]
     yaku_list = agari_data["yaku"]
-    fu = fukeisan.fukeisan(PlayerInfo, menzen_pattern, agarihai)
+    mentsu_pattern = agari_data["mentu_pattern"]
+    agarihai = agari_data["agarihai"]
+
+
+    fu = fukeisan.fukeisan(Game.players[aga_per],mentsu_pattern, agarihai)
     han = 0
     for yaku in yaku_list:
         han += yaku_dic[yaku]["hansu"]
@@ -61,4 +68,4 @@ def tensukeisan(agari_data):
                     tensu_data[i] = -ten_aga
     print(han, "翻", fu, "符")
     print(tensu_data)
-    return tensu_data
+    return [tensu_data, fu, han]

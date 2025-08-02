@@ -313,7 +313,8 @@ class Mahjong():
                     "whoagarare": None,
                     "tehai": Player.tehai,
                     "yaku": by[1],
-                    "mentu_pattern": by[0]}
+                    "mentu_pattern": by[0],
+                    "agarihai": Player.tehai["tumo"]}
 
             elif sousa == "pon": # ポンの場合
                 for i in range(2): Player.kiru(sousa_hai)
@@ -355,7 +356,8 @@ class Mahjong():
                     "whoagarare": self.whoturn,
                     "tehai": Player.tehai,
                     "yaku": by[1],
-                    "mentu_pattern": by[0]}
+                    "mentu_pattern": by[0],
+                    "agarihai": sousa_hai}
                 
         # フェーズ・キューの更新
         if sousa == "ignore":
