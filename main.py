@@ -12,6 +12,8 @@ import math
 import info
 import tensukeisan
 
+import chappy_choice
+
 
 DIR = getdir.dir()
 
@@ -77,8 +79,10 @@ class COLOR():
 
 # pygameで使ういろんな変数をここで定義する
 font = pygame.font.SysFont(None, 32)
-font_jp = pygame.font.SysFont("Meiryo", 20)
-font_jp.set_bold(True)
+font_jp = pygame.font.SysFont("Meiryo", 25)
+#font_jp.set_bold(True)
+font_jp_deka = pygame.font.SysFont("Meiryo", 40)
+
 cmd_font = pygame.font.SysFont(None, 30)
 
 clickmap = []
@@ -362,9 +366,17 @@ def draw_result():
     info_surf = font.render(info_tx, True, COLOR.YELLOW)
     screen.blit(info_surf, (20, 50))
 
+    
+
+
 def draw_title():
     # ステージの描画
-    pygame.draw.rect(screen, COLOR.GRAY, (0, 0, SCREEN_H, SCREEN_H)) # 卓の外側だけテスト描画
+    pygame.draw.rect(screen, COLOR.TAKU, (0, 0, SCREEN_H+300, SCREEN_H)) # 卓の外側だけテスト描画
+
+    # 結果を表示する（まずは仮表示）
+    info_tx = f"画面クリックでスタート"
+    info_surf = font_jp_deka.render(info_tx, True, COLOR.WHITE)
+    draw_node(info_surf, C_X+150, C_Y)
 
 def loop_runner(loop):
     asyncio.set_event_loop(loop)  # このスレッドで `asyncio.get_event_loop()` が使える
@@ -382,11 +394,10 @@ async def start_ai():
     what_ai_can_do = Game.capable_sousa_now
     printd("AI can do", what_ai_can_do)
     printd("START AI THINKING")
-    await asyncio.sleep(0.5) # とりま待たせる
+    #await asyncio.sleep(0.5) # とりま待たせる
 
-    if False:
+    if True:
         # 河原依頼
-        import chappy_choice
         situations = {
             "kawa_li": None,
             "tehai": None,
@@ -397,10 +408,15 @@ async def start_ai():
         situations["kawa_li"] = [playerinfo_li[0].kawa , playerinfo_li[1].kawa , playerinfo_li[2].kawa , playerinfo_li[3].kawa]
         situations["tehai"] = playerinfo_li[Game.whoturn].tehai
         situations["naki"] = [playerinfo_li[0].tehai["naki"] , playerinfo_li[1].tehai["naki"] , playerinfo_li[2].tehai["naki"] , playerinfo_li[3].tehai["naki"]]
-        AI_cmd = chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do) # 待機時間が発生する関数
-    AI_cmd = random.choice(what_ai_can_do)
+        
+        print(situations)
+        print(what_ai_can_do)
+        AI_cmd = await chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do) # 待機時間が発生する関数
+    #AI_cmd = random.choice(what_ai_can_do)
 
     printd("FINISH AI THINKING")
+
+    print("AI_CMD:", AI_cmd)
 
     ai_q.put(AI_cmd)
 
@@ -491,11 +507,12 @@ while running: # ここがtkinterでいうとこのmainloop()
         Game.reset_kyoku()
 
     # 描画
-    if game_state == STATE_PLAY:
+    if game_state == STATE_PLAY: # ゲーム中
         draw()
-    if game_state == STATE_RESULT:
+    if game_state == STATE_RESULT: # 結果表示
         draw_result()
-    if game_state == STATE_TITLE:
+        
+    if game_state == STATE_TITLE: # タイトル画面
         draw_title()
 
 

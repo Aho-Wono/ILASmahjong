@@ -3,9 +3,12 @@ import random
 from dotenv import load_dotenv
 import openai
 
-def chappy_choice(situations , what_ai_can_do):
+import asyncio
+
+async def chappy_choice(situations , what_ai_can_do):
     load_dotenv(".env")
-    chatgpt = openai.OpenAI(api_key = os.environ.get("OPENAI_API_KEY"))
+    KEY = "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"
+    chatgpt = openai.OpenAI(api_key = os.environ.get(KEY))
     
     setting = "あなたはプロの雀士です。今から誰かの手牌と全員分の河と鳴きの様子を伝えます。" \
     "牌の表示は省略されていて、萬子、筒子、索子はそれぞれ一文字目にm、p、sで二文字目には1~9の数字で表されます。" \
@@ -51,3 +54,8 @@ def chappy_choice(situations , what_ai_can_do):
         print("chappy_choice error")
         selected_action = random.choice(what_ai_can_do)
     return selected_action
+
+sit = {'kawa_li': [[['haku', False, False]], [], [], []], 'tehai': {'menzen': ['pei', 'm1', 'p6', 's2', 'm2', 'sha', 's9', 'chun', 'p4', 's3', 'chun', 'm4', 'ton'], 'naki': [], 'tumo': 's4'}, 'naki': [[], [], [], []], 'whoturn': 1}
+wacd = [[1, 'kiru', 'm1'], [1, 'kiru', 'm2'], [1, 'kiru', 'm4'], [1, 'kiru', 'p4'], [1, 'kiru', 'p6'], [1, 'kiru', 's2'], [1, 'kiru', 's3'], [1, 'kiru', 's4'], [1, 'kiru', 's9'], [1, 'kiru', 'ton'], [1, 'kiru', 'sha'], [1, 'kiru', 'pei'], [1, 'kiru', 'chun']]
+
+chappy_choice(situations=sit , what_ai_can_do=wacd)
