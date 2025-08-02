@@ -48,11 +48,8 @@ async def chappy_choice(situations , what_ai_can_do):
     )
 
     answer = response.choices[0].message.content
-    try:
-        selected_action = what_ai_can_do[int(answer)]
-    except:
-        print("chappy_choice error")
-        selected_action = random.choice(what_ai_can_do)
+    selected_action = what_ai_can_do[int(answer)]
+
     return selected_action
 
 #sit = {'kawa_li': [[['haku', False, False]], [], [], []], 'tehai': {'menzen': ['pei', 'm1', 'p6', 's2', 'm2', 'sha', 's9', 'chun', 'p4', 's3', 'chun', 'm4', 'ton'], 'naki': [], 'tumo': 's4'}, 'naki': [[], [], [], []], 'whoturn': 1}
