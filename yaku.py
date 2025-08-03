@@ -177,7 +177,9 @@ def yaku(players, p_id, agarihai, sousa=None, mpmode= False): # 引数は二つ�
             hai_mae = ALL_HAI[ALL_HAI.index(hai)-1] # 一個前の牌を取得
             if hai_mae in dora_omote_valid: yaku_pattern.append("ドラ")
             if hai_mae in dora_ura_valid and players[p_id].ifrichi():   yaku_pattern.append("裏ドラ")
-        
+        #一発
+        if players[p_id].ifippatu:
+            yaku_pattern.append("一発")
         
         #天和地和など特殊な情報が必要な役を判定
         if ys_haiteimoyue.ys_haiteimoyue(players, p_id, menzen_pattern, agarihai):
