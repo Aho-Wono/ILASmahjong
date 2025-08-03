@@ -2,13 +2,12 @@ import y_pinfu
 import y_menzentumo
 import info
 from mahjong import PlayerInfo
+from mahjong import Mahjong
 
-Player = PlayerInfo()
-
-def atama(menzen_pattern, agarihai):
-    naki = Player.tehai["naki"]
+def atama(Play1 : PlayerInfo,menzen_pattern, agarihai): #頭の判定
+    naki = Play1.tehai["naki"]
     kyoku = info.read()["kyoku"]
-    player = Player.playerid
+    player = Play1.playerid
     kazehai = ["ton" , "nan" , "sha" , "pei"]
     yakuhai = ["haku" , "hatu" , "chun"]
     zikaze_keisan = (int(player)-(int(kyoku[1])-1))%4
@@ -30,7 +29,10 @@ def atama(menzen_pattern, agarihai):
 
 def kokushi(menzen_pattern, agarihai):
     yaochuhai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
-    if menzen_pattern[0] == yaochuhai and menzen_pattern[1][0] in yaochuhai:
+    menz1 = menzen_pattern[0] + menzen_pattern[1][0]
+    menz1.sort()
+    yaochuhai.sort()
+    if menz1 == yaochuhai:
         return True
     return False
 
@@ -41,7 +43,7 @@ def haikei(s:str):#2~8のときTrue, それいがいFalse
         return False
     return True
 
-def ryanmen(menz_li, ag_h):
+def ryanmen(menz_li, ag_h:str):
     if menz_li[1] == ag_h:
         return False
     if menz_li[0] == menz_li[1] and menz_li[1] == menz_li[2]:
@@ -64,7 +66,14 @@ def syanpon(menz_li):
     else:
         return False
 
-def fukeisan(menzen_pattern, agarihai):
+def fukeisan(Game:Mahjong):
+    agari_data = Game.agari_data
+    agarihai = agari_data["agarihai"]
+    menzen_pattern = Game.menzen_pattern
+    Player = PlayerInfo()
+    Player.playerid = agari_data["playerid"]
+    Player.tehai = agari_data["tehai"]
+    kyoku = info.read()["kyoku"]
     if len(menzen_pattern) == 7:
         return 25
     if y_pinfu.y_pinfu(Player, menzen_pattern, agarihai) and y_menzentumo.y_menzentumo(Player, menzen_pattern, agarihai):
