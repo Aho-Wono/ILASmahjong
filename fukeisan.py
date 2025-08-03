@@ -1,6 +1,7 @@
 import y_pinfu
 import y_menzentumo
 import info
+import ripai
 
 def atama(PlayerInfo, menzen_pattern, agarihai):
     naki = PlayerInfo.tehai["naki"]
@@ -27,10 +28,7 @@ def atama(PlayerInfo, menzen_pattern, agarihai):
 
 def kokushi(PlayerInfo, menzen_pattern, agarihai):
     yaochuhai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
-    menz_1 = menzen_pattern[0] + menzen_pattern[1][0]
-    menz_1.sort()
-    yaochuhai.sort()
-    if menz_1 == yaochuhai:
+    if ripai.ripai(menzen_pattern[0]) == ripai.ripai(yaochuhai):
         return True
     return False
 
