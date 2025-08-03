@@ -280,9 +280,9 @@ def draw_player(pid):
     # ここからプレイヤーのみの描画
     if pid == MY_PID:
         # デバッグ描画
-        info_tx = f"ignored={" ".join(Player.ignored[:-1])}"
-        info_surf = font.render(info_tx, True, COLOR.YELLOW)
-        screen.blit(info_surf, (C_X+20, C_Y+20))
+        #info_tx = f"ignored={" ".join(Player.ignored[:-1])}"
+        #info_surf = font.render(info_tx, True, COLOR.YELLOW)
+        #screen.blit(info_surf, (C_X+20, C_Y+20))
         
         # 何待ちか描画
         wtt = Player.what_to_tempai()
@@ -509,26 +509,45 @@ while running: # ここがtkinterでいうとこのmainloop()
         if game_state == STATE_TITLE: # タイトル
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
                 Game = Mahjong()        # 新しい半荘／局を開始
+                info.edit("score", [25000,25000,25000,25000])
                 game_state = STATE_PLAY
                 waiting_ai = False
-                                
                 MY_PID = 0
                 AI_PIDS = [1,2,3]
             continue        # タイトル中は他イベント無視
 
-        if game_state == STATE_RESULT: # 結果見てる
+        if game_state == STATE_RESULT: # 結果見てる状態
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
                 game_state = STATE_RESET
                 # 点数移動を行う
-                
+                if result != None:
+                    score = info.read()["score"]
+                    for i,t in enumerate(result[0]):
+                        score[i] += t
+                info.edit("score", score)
+
+                printd("STATE_RESULT→STATE_RESET")
             continue
 
         if game_state == STATE_RESET:
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
-                game_state = STATE_PLAY
-                Game.reset_kyoku()
-            continue
+                # 次局へ移る
+                kyoku = info.read()["kyoku"]
+                kyoku_index = "t1 t2 t3 t4 n1 n2 n3 n4".split().index(kyoku)
 
+                if kyoku_index == 7: # ゲーム終了
+                    game_state = STATE_TITLE
+                else:
+                    if info.getoya() == (Game.agari_data["whoagari"] if Game.agari_data != None else None): # 連荘
+                        info.edit("hon", info.read()["hon"]+1)
+                    else: # 親流れ
+                        info.edit("kyoku", "t1 t2 t3 t4 n1 n2 n3 n4".split()[kyoku_index+1])
+
+                    game_state = STATE_PLAY
+                    # 局情報をリセットして新しい局に移らす                
+                    Game.reset_kyoku()
+                    printd("STATE_RESET→STATE_PLAY")
+            continue
 
 
         # --------- ここから対局中 (STATE_PLAY) ---------
@@ -540,7 +559,6 @@ while running: # ここがtkinterでいうとこのmainloop()
 
             elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
                 cmd = click_to_cmd(ev.pos)
-            
 
     # イベント取得外の処理
     if game_state == STATE_PLAY:
@@ -559,17 +577,15 @@ while running: # ここがtkinterでいうとこのmainloop()
                 result = None
             else:   
                 result = tensukeisan.tensukeisan(Game) # 点数計算に移る
-    if game_state == STATE_RESULT:
-        pass 
-    if game_state == STATE_RESET:
-        pass
+
 
     # 描画
     if game_state == STATE_PLAY: # ゲーム中
         draw()
     if game_state == STATE_RESULT: # 結果表示
         draw_result()
-        
+    if game_state == STATE_RESET:
+        draw_result()
     if game_state == STATE_TITLE: # タイトル画面
         draw_title()
 
