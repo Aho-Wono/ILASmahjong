@@ -114,7 +114,7 @@ class Mahjong():
             Player.tehai["menzen"] = haipai
 
         if True:
-            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m3 s1 s2 s3 s1 s2 s3 p3 p2".split()
+            self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
 
         # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
         dora_omote = []
@@ -170,7 +170,7 @@ class Mahjong():
             # 鳴いた後の操作でない場合、立直・ツモ・カンができる
             if self.previous_cmd[1] in ["kiru", "richi", "ankan", "kakan"]:
                 # 立直判定
-                if not Player.ifnaki(): # 鳴いていなければ聴牌判定に入る
+                if not (Player.ifnaki() or Player.ifrichi()): # 副露・立直してなければ聴牌判定に入る
                     for kiruhai in Player.menzen_li(): 
                         tehai_li_copied = Player.menzen_li()[:]
                         tehai_li_copied.remove(kiruhai)
@@ -369,7 +369,7 @@ class Mahjong():
             self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
         else:
             # 何かしらの操作が発生している場合
-            if sousa != "daiminkan":
+            if sousa not in  ["daiminkan", "tumo"]:
                 Player.tehai["tumo"] = None # 操作を行ったプレイヤーのツモ牌をNoneにする
             self.whoturn = p_id # 誰のターンかを更新する
             self.previous_cmd = cmd # 最後に直前に行われた操作を保存する
