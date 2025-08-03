@@ -139,7 +139,7 @@ class Mahjong():
         info.edit("kancount", 0) # カンの初期化
         self.whoturn = info.getoya() # 誰が親かで最初にツモるひとを判定する (0~4)
         
-        if True: # デバッグ
+        if False: # デバッグ
             self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
             self.players[1].tehai["menzen"] = "m1 m1 m1 m2 m3 p1 p4 p2 p2 p3 p3  s4 s3".split()
             self.players[2].tehai["menzen"] = "s2 s2 s2 s3 s4 s5 s6 p1 p2 p3 m5 m6 m7".split()
