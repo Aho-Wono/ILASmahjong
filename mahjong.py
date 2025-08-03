@@ -113,8 +113,6 @@ class Mahjong():
                 haipai.append(tumo)
             Player.tehai["menzen"] = haipai
 
-        if True:
-            self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
 
         # ドラの設定　最後にrandom.choiceしても良いがついで裏ドラも4個分押さえておく
         dora_omote = []
@@ -134,6 +132,10 @@ class Mahjong():
         info.edit("kancount", 0) # カンの初期化
         self.whoturn = info.getoya() # 誰が親かで最初にツモるひとを判定する (0~4)
         
+        if True: # デバッグ
+            self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
+            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m3 p1 p4 p2 p2 p3 p3  s4 s3".split()
+
 
         # 親に1牌ツモらせる
         oya_id = info.getoya()

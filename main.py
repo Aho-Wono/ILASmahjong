@@ -512,8 +512,16 @@ while running: # ここがtkinterでいうとこのmainloop()
                 info.edit("score", [25000,25000,25000,25000])
                 game_state = STATE_PLAY
                 waiting_ai = False
+                
+                # あとあと変える箇所ー 未作成！
+                MY_PID = random.choice([1,2,3,4])
+
                 MY_PID = 0
-                AI_PIDS = [1,2,3]
+
+                AI_PIDS = [1,2,3,4]
+                AI_PIDS.remove(MY_PID)
+
+
             continue        # タイトル中は他イベント無視
 
         if game_state == STATE_RESULT: # 結果見てる状態
@@ -568,7 +576,7 @@ while running: # ここがtkinterでいうとこのmainloop()
                 printd("LAUNCH AI")
                 waiting_ai = True
                 launch_ai()
-                
+
         Game.step(cmd) # None なら自動進行だけ
 
         if Game.phase == Phase.ROUND_END: # ゲームが終了すればその局の結果開示に移る
