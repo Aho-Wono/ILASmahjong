@@ -231,7 +231,7 @@ def agari_capable(players, p_id, agarihai, sousa):
 
 # 役の組み合わせからどれが最も役数が高くなるか言ってくれるやつ～（点数処理の関係でベスト時のmenzen_patternも返すような関数にします）
 def best_yaku(players, p_id, agarihai, sousa):
-    yaku_pattern_li_and_mentsu_pattern = yaku(players, agarihai, sousa, mpmode=True)
+    yaku_pattern_li_and_mentsu_pattern = yaku(players, p_id, agarihai, sousa, mpmode=True)
     
     if len(yaku_pattern_li_and_mentsu_pattern) == 0: return None # そもそも役がなければNoneを返す
     max_yp_mp = None
