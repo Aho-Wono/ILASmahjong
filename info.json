@@ -1,20 +1,20 @@
 {
     "kyoku": "t1",
-    "hon": 0,
+    "hon": 2,
     "kancount": 0,
     "dora_omote": [
-        "p6",
-        "p7",
-        "p3",
-        "m4",
-        "m4"
+        "s2",
+        "sha",
+        "s1",
+        "s4",
+        "p2"
     ],
     "dora_ura": [
-        "ton",
-        "sha",
-        "m7",
-        "hatu",
-        "pei"
+        "m3",
+        "m2",
+        "s5",
+        "p6",
+        "s5"
     ],
     "score": [
         25000,
