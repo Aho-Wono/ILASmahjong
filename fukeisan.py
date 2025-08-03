@@ -116,5 +116,5 @@ def fukeisan(PlayerInfo, menzen_pattern, agarihai):
     if mati_fl:
         hai_count += 2
     #四捨五入前の符計算は完了
-    ans = ((hai_count + 9) % 10) * 10
+    ans = ((hai_count + 9) // 10) * 10
     return ans
