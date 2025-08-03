@@ -95,15 +95,15 @@ def tensukeisan(Game:Mahjong):
         if aga_per == info.getoya(): #親があがったとき
             ten_aga = 0
             if (han == 4 and fu >= 40) or (han == 3 and fu >= 70) or han == 5:
-                ten_oya = 12000
+                ten_aga = 12000
             elif han == 6 or han == 7:
-                ten_oya = 18000
+                ten_aga = 18000
             elif han >= 8 and han <= 10:
-                ten_oya = 24000
+                ten_aga = 24000
             elif han >= 11 and han <= 12:
-                ten_oya = 36000
+                ten_aga = 36000
             elif han >= 13:
-                ten_oya = 48000
+                ten_aga = 48000
             else:
                 ten_aga = fu * pow(2, han) * 4 * 2 * 3
                 ten_aga = ((ten_aga + 99) // 100) * 100
@@ -115,15 +115,15 @@ def tensukeisan(Game:Mahjong):
         else: #子があがったとき
             ten_aga = 0
             if (han == 4 and fu >= 40) or (han == 3 and fu >= 70) or han == 5:
-                ten_oya = 8000
+                ten_aga = 8000
             elif han == 6 or han == 7:
-                ten_oya = 12000
+                ten_aga = 12000
             elif han >= 8 and han <= 10:
-                ten_oya = 16000
+                ten_aga = 16000
             elif han >= 11 and han <= 12:
-                ten_oya = 24000
+                ten_aga = 24000
             elif han >= 13:
-                ten_oya = 32000
+                ten_aga = 32000
             else:
                 ten_aga = fu * pow(2, han) * 4 * 4
                 ten_aga = ((ten_aga + 99) // 100) * 100
