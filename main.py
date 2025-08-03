@@ -553,13 +553,14 @@ while running: # ここがtkinterでいうとこのmainloop()
                     
                     bappu = {"0":0, "1":1000, "2":1500, "3":1000, "4":0}[str(tempai_li.count(True))]
                     
-                    result = [[(+bappu if boo else -bappu) for boo in tempai_li],
-                        None, None]
-                    
+                    tensu_ido = [(+bappu if boo else -bappu) for boo in tempai_li]
+                else:
+                    tensu_ido = result[0]
 
+                printd("tensu_ido:", tensu_ido)
 
                 score = info.read()["score"]
-                for i,t in enumerate(result[0]):
+                for i,t in enumerate(tensu_ido):
                     score[i] += t
                 info.edit("score", score)
 
