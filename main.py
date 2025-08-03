@@ -331,6 +331,11 @@ def draw():
     draw_node(kyoku_surf, C_X, C_Y, anchor="midbottom")
     draw_node(hon_surf, C_X, C_Y, anchor="midtop")
 
+    # 残りツモ数表示
+    nokori = len(Game.YAMA) - 4
+    nokori_surf = font_jp_deka.render(f"残 {nokori}", True, COLOR.BLACK)
+    draw_node(nokori_surf, SCREEN_H+150, 650)
+
     # 王牌表示
     dorasu = info.read()["kancount"] + 1
     # 表ドラ表示
@@ -391,7 +396,8 @@ def draw_result():
     draw()
 
     if result == None: # 流局の場合
-        printd("流局")
+        yaku_surf = font_jp_deka.render("流局", True, COLOR.BLACK)
+        draw_node(yaku_surf, SCREEN_H + 30, 30+1, anchor="topleft")
     else: # 誰かしら上がってて結果を表示せなあかん場合
         y = 30 + 1
         # 役の表示
@@ -463,7 +469,7 @@ async def start_ai():
         try:
             AI_cmd = await asyncio.wait_for(
             chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do), # 待機時間が発生する関数
-                timeout=1)
+                timeout=0)
         except asyncio.TimeoutError:
             printd("ChatGPT Timeout")
             AI_cmd = random.choice(what_ai_can_do)
@@ -516,7 +522,7 @@ while running: # ここがtkinterでいうとこのmainloop()
                 # あとあと変える箇所ー 未作成！
                 MY_PID = random.choice([0,1,2,3])
 
-                MY_PID = 0
+                MY_PID = 1
 
                 AI_PIDS = [0,1,2,3]
                 AI_PIDS.remove(MY_PID)
@@ -532,7 +538,7 @@ while running: # ここがtkinterでいうとこのmainloop()
                     score = info.read()["score"]
                     for i,t in enumerate(result[0]):
                         score[i] += t
-                info.edit("score", score)
+                    info.edit("score", score)
 
                 printd("STATE_RESULT→STATE_RESET")
             continue

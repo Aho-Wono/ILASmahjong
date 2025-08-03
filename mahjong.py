@@ -406,8 +406,9 @@ class Mahjong():
             # ツモが必要
             if self.phase == Phase.NEED_DRAW:
                 # ツモろうにも残り牌がなかったら局を終了する
-                if len(self.YAMA) <= 4: # 残り牌が4敗以下（王牌を考慮して）になったらループを終わらせる
-                    self.phase == Phase.ROUND_END
+                if len(self.YAMA) <= 4: # 残り牌が4牌以下（王牌を考慮して）になったらループを終わらせる
+                    printd("no hai remains")
+                    self.phase = Phase.ROUND_END
                     continue
 
                 # ツモらせる操作
