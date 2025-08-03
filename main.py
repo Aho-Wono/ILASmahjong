@@ -275,7 +275,7 @@ def draw_player(pid):
 
     # 点数を描画
     score = info.read()["score"][pid]
-    score_surf = font.render(str(score), True, COLOR.YELLOW)
+    score_surf = font.render(str(score), True, COLOR.BLACK if info.getoya() == pid else COLOR.YELLOW)
     draw_node(score_surf, C_X, C_Y+80, rotate_all=rotate_all)
 
     # ここからプレイヤーのみの描画
