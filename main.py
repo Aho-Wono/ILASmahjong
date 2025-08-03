@@ -390,32 +390,34 @@ def draw():
 def draw_result():
     draw()
 
-    y = 30 + 1
-    # 役の表示
-    yaku_li = Game.agari_data["yaku"]
-    for yaku in yaku_li:
-        yaku_surf = font_jp.render(yaku, True, COLOR.BLACK)
-        draw_node(yaku_surf, SCREEN_H + 30, y, anchor="topleft")
-        y += 30
-    y+=30
-    
-    result = tensukeisan.tensukeisan(Game)
-    # 符・翻の表示
-    fuhan = f"{result[1]}符 {result[2]}翻"
-    fuhan_surf = font_jp.render(fuhan, True, COLOR.WHITE)
-    draw_node(fuhan_surf, SCREEN_H + 30, y, anchor="topleft")
+    if result == None: # 流局の場合
+        printd("流局")
+    else: # 誰かしら上がってて結果を表示せなあかん場合
+        y = 30 + 1
+        # 役の表示
+        yaku_li = Game.agari_data["yaku"]
+        for yaku in yaku_li:
+            yaku_surf = font_jp.render(yaku, True, COLOR.BLACK)
+            draw_node(yaku_surf, SCREEN_H + 30, y, anchor="topleft")
+            y += 30
+        y+=30
+        
+        # 符・翻の表示
+        fuhan = f"{result[1]}符 {result[2]}翻"
+        fuhan_surf = font_jp.render(fuhan, True, COLOR.WHITE)
+        draw_node(fuhan_surf, SCREEN_H + 30, y, anchor="topleft")
 
-    # 点数の表示
-    y+=30
-    tensu_li = sorted(result[0])
-    if tensu_li.count(0) == 2: # 放銃の場合
-        tensu = f"{max(tensu_li)}"
-    elif tensu_li.count(tensu_li[0]) == 3: # 親のツモの場合
-        tensu = f"{-tensu_li[0]}オール"
-    else:
-        tensu = f"{-tensu_li[1]}・{-tensu_li[0]}" # 子のツモの場合
-    tensu_surf = font_jp.render(tensu, True, COLOR.WHITE)
-    draw_node(tensu_surf, SCREEN_H + 30, y, anchor="topleft")
+        # 点数の表示
+        y+=30
+        tensu_li = sorted(result[0])
+        if tensu_li.count(0) == 2: # 放銃の場合
+            tensu = f"{max(tensu_li)}"
+        elif tensu_li.count(tensu_li[0]) == 3: # 親のツモの場合
+            tensu = f"{-tensu_li[0]}オール"
+        else:
+            tensu = f"{-tensu_li[1]}・{-tensu_li[0]}" # 子のツモの場合
+        tensu_surf = font_jp.render(tensu, True, COLOR.WHITE)
+        draw_node(tensu_surf, SCREEN_H + 30, y, anchor="topleft")
 
 
 
@@ -514,14 +516,17 @@ while running: # ここがtkinterでいうとこのmainloop()
                 AI_PIDS = [1,2,3]
             continue        # タイトル中は他イベント無視
 
-        if game_state == STATE_RESULT: # 結果待ち
+        if game_state == STATE_RESULT: # 結果見てる
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
                 game_state = STATE_RESET
+                # 点数移動を行う
+                
             continue
 
         if game_state == STATE_RESET:
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
                 game_state = STATE_PLAY
+                Game.reset_kyoku()
             continue
 
 
@@ -550,12 +555,14 @@ while running: # ここがtkinterでいうとこのmainloop()
 
         if Game.phase == Phase.ROUND_END: # ゲームが終了すればその局の結果開示に移る
             game_state = STATE_RESULT
+            if Game.agari_data == None:
+                result = None
+            else:   
+                result = tensukeisan.tensukeisan(Game) # 点数計算に移る
     if game_state == STATE_RESULT:
-        pass # 徳にすることねぇ    
+        pass 
     if game_state == STATE_RESET:
-        # 点数移動・リセットを行う
-        # 未作成！！！
-        Game.reset_kyoku()
+        pass
 
     # 描画
     if game_state == STATE_PLAY: # ゲーム中
