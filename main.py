@@ -462,8 +462,6 @@ async def start_ai():
     what_ai_can_do = Game.capable_sousa_now
     printd("AI can do", what_ai_can_do)
     printd("START AI THINKING")
-    #await asyncio.sleep(0.5) # とりま待たせる
-
     if True:
         # 河原依頼
         situations = {

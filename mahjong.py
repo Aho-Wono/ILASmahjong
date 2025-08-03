@@ -141,10 +141,11 @@ class Mahjong():
         
         if False: # デバッグ
             self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
-            self.players[1].tehai["menzen"] = "m1 m1 m1 m2 m3 p1 p4 p2 p2 p3 p3  s4 s3".split()
+            self.players[1].tehai["menzen"] = "m1 m1 m1 m2 m3 p1 p2 p2 p3 p3 s7 s8 s9".split()
             self.players[2].tehai["menzen"] = "s2 s2 s2 s3 s4 s5 s6 p1 p2 p3 m5 m6 m7".split()
-            self.players[3].tehai["menzen"] = "ton ton ton nan nan nan sha sha sha pei pei pei chun".split()
-
+            self.players[3].tehai["menzen"] = "m1 m1 m1 s3 s4 s7 s8 s9 pei pei pei chun chun".split()
+        
+        #self.players[3].tehai["menzen"] = "m1 m2 m3 m4 m5 m6 m7 m8 m9 ton ton nan nan".split()
 
         # 親に1牌ツモらせる
         oya_id = info.getoya()
