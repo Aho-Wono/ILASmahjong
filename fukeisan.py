@@ -27,30 +27,34 @@ def atama(PlayerInfo, menzen_pattern, agarihai):
 
 def kokushi(PlayerInfo, menzen_pattern, agarihai):
     yaochuhai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
-    if menzen_pattern[0] == yaochuhai and menzen_pattern[1][0] in yaochuhai:
+    menz_1 = menzen_pattern[0] + menzen_pattern[1][0]
+    menz_1.sort()
+    yaochuhai.sort()
+    if menz_1 == yaochuhai:
         return True
     return False
 
 def haikei(s:str):#2~8のときTrue, それいがいFalse
     if len(s) != 2:
         return False
-    if int(s[1]) == 1 and int(s[1]) == 9:
+    if int(s[1]) == 1 or int(s[1]) == 9:
         return False
     return True
 
 def ryanmen(menz_li, agarihai):
+    menz_li.sort()
     if menz_li[1] == agarihai:
         return False
     if menz_li[0] == menz_li[1] and menz_li[1] == menz_li[2]:
         return False
     #あがり牌が大きい時を調べる。
     if menz_li[2] == agarihai:
-        if agarihai[2] == '3':
+        if agarihai[1] == '3':
             return False
         else:
             return True
     else: #小さいときをしらべる
-        if agarihai[2] == '7':
+        if agarihai[1] == '7':
             return False
         else:
             return True
@@ -103,7 +107,9 @@ def fukeisan(PlayerInfo, menzen_pattern, agarihai):
     for menz in menzen_pattern:
         mati = True
         if agarihai in menz:
-            if not ryanmen(menz, agarihai) and not syanpon(menz, agarihai):#両面待ちでもシャンポン待ちでもないものがあればよい。
+            if len(agarihai) != 2:
+                mati = False
+            elif not ryanmen(menz, agarihai) and not syanpon(menz, agarihai):#両面待ちでもシャンポン待ちでもないものがあればよい。
                 mati = False
         if not mati:
             mati_fl = True
