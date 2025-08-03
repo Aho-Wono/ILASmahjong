@@ -78,11 +78,9 @@ def tensukeisan(Game:Mahjong):
                 ten_ko = 8000
                 ten_oya = 16000
             else:
-                
                 ten_ko = fu * pow(2, han) * 4
                 ten_oya = ten_ko * 2
                 ten_aga = ten_ko * 4
-                print(fu, "符,", han, "翻", " ", ten_aga, "点")
                 ten_ko = ((ten_ko + 99) // 100) * 100
                 ten_oya = ((ten_oya + 99) // 100) * 100
                 ten_aga = ((ten_aga + 99) // 100) * 100
@@ -127,7 +125,7 @@ def tensukeisan(Game:Mahjong):
             elif han >= 13:
                 ten_oya = 32000
             else:
-                ten_aga = fu * pow(2, han) * 4 * 3
+                ten_aga = fu * pow(2, han) * 4 * 4
                 ten_aga = ((ten_aga + 99) // 100) * 100
             for i in range(4):
                 if i == aga_per:
