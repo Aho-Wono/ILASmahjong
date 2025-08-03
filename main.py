@@ -514,11 +514,11 @@ while running: # ここがtkinterでいうとこのmainloop()
                 waiting_ai = False
                 
                 # あとあと変える箇所ー 未作成！
-                MY_PID = random.choice([1,2,3,4])
+                MY_PID = random.choice([0,1,2,3])
 
                 MY_PID = 0
 
-                AI_PIDS = [1,2,3,4]
+                AI_PIDS = [0,1,2,3]
                 AI_PIDS.remove(MY_PID)
 
 
