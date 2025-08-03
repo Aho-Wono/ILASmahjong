@@ -470,7 +470,7 @@ async def start_ai():
             "kawa_li": None,
             "tehai": None,
             "naki" : None,
-            "whoturn" : Game.whoturn
+            "whoturn" : Game.queue[0]
         }
         playerinfo_li = Game.players[:]
         situations["kawa_li"] = [playerinfo_li[0].kawa , playerinfo_li[1].kawa , playerinfo_li[2].kawa , playerinfo_li[3].kawa]
