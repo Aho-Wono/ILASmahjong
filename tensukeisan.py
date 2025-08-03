@@ -28,8 +28,8 @@ def tensukeisan(Game:Mahjong):
         if aga_per == info.getoya(): #親があがったとき
             ten_ko = fu * pow(2, han) * 4 * 2
             ten_aga = ten_ko * 3
-            ten_ko = ((ten_ko + 99) % 100) * 100
-            ten_aga = ((ten_aga + 99) % 100) * 100
+            ten_ko = ((ten_ko + 99) / 100) * 100
+            ten_aga = ((ten_aga + 99) / 100) * 100
             for i in range(4):
                 if i == aga_per:
                     tensu_data[i] = ten_aga
@@ -39,9 +39,9 @@ def tensukeisan(Game:Mahjong):
             ten_ko = fu * pow(2, han) * 4
             ten_oya = ten_ko * 2
             ten_aga = ten_ko * 4
-            ten_ko = ((ten_ko + 99) % 100) * 100
-            ten_oya = ((ten_oya + 99) % 100) * 100
-            ten_aga = ((ten_aga + 99) % 100) * 100
+            ten_ko = ((ten_ko + 99) / 100) * 100
+            ten_oya = ((ten_oya + 99) / 100) * 100
+            ten_aga = ((ten_aga + 99) / 100) * 100
             for i in range(4):
                 if i == aga_per:
                     tensu_data[i] = ten_aga
@@ -52,7 +52,7 @@ def tensukeisan(Game:Mahjong):
     else: #ロンのとき
         if aga_per == info.getoya(): #親があがったとき
             ten_aga = fu * pow(2, han) * 4 * 2 * 3
-            ten_aga = ((ten_aga + 99) % 100) * 100
+            ten_aga = ((ten_aga + 99) / 100) * 100
             for i in range(4):
                 if i == aga_per:
                     tensu_data[i] = ten_aga
@@ -60,7 +60,7 @@ def tensukeisan(Game:Mahjong):
                     tensu_data[i] = -ten_aga
         else: #子があがったとき
             ten_aga = fu * pow(2, han) * 4 * 3
-            ten_aga = ((ten_aga + 99) % 100) * 100
+            ten_aga = ((ten_aga + 99) / 100) * 100
             for i in range(4):
                 if i == aga_per:
                     tensu_data[i] = ten_aga
