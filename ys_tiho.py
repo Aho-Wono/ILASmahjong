@@ -3,6 +3,8 @@ def ys_tiho(players, p_id, menzen_pattern, agarihai):
     kyoku = info.read()["kyoku"]
     oya_id = int(kyoku[1]) - 1
     kawakakunin = 0
+    if players[p_id].tehai["tumo"] != agarihai:
+        return False
     if p_id == oya_id:
         return False
     if p_id > oya_id:
