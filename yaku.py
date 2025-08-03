@@ -95,6 +95,12 @@ def teyaku_li():
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
 
+def yakuman():
+    ykm_li = []
+    for yaku in list(yaku_dic):
+        if yaku_dic[yaku]["hansu"] == 13: ykm_li.append(yaku)
+    return ykm_li
+
 # デバッグ用print関数
 def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
     if False:
@@ -223,6 +229,7 @@ def best_yaku(PlayerInfo, agarihai, sousa):
             max_yp_mp = yplamp
     return max_yp_mp
     # 未作成！
+
 
 if __name__ == "__main__":
     from mahjong import PlayerInfo
