@@ -318,9 +318,6 @@ def draw():
     for i in range(4):
         draw_player(i)
     
-
-
-
     # 局情報を描画
     w2 = 120
     rect = pygame.Rect(C_X-w2/2, C_Y-w2/2, w2, w2)   # 四角形の領域
@@ -334,7 +331,37 @@ def draw():
     draw_node(kyoku_surf, C_X, C_Y, anchor="midbottom")
     draw_node(hon_surf, C_X, C_Y, anchor="midtop")
 
-
+    # 王牌表示
+    dorasu = info.read()["kancount"] + 1
+    # 表ドラ表示
+    dora_omote = info.read()["dora_omote"]
+    for i in range(5):
+        if i+1 <= dorasu:
+            hai = ["front", dora_omote[i]]
+        else:
+            hai = ["back"]
+        for h in hai:
+            img = image_dic[h]
+            draw_node(img, SCREEN_H+150-H_X*2+H_X*i, 750)
+    # 表ドラ表示
+    dora_ura = info.read()["dora_ura"]
+    agari_data = Game.agari_data
+    ifuradora = False
+    if agari_data != None:
+        whoagari = agari_data["whoagari"]
+        if Game.players[whoagari].ifrichi(): # 上がった人が立直してたら裏ドラをチラ見させる
+            ifuradora = True
+    for i in range(5):
+        if i+1 <= dorasu and ifuradora:
+            hai = ["front", dora_ura[i]]
+        else:
+            hai = ["back"]
+        for h in hai:
+            img = image_dic[h]
+            draw_node(img, SCREEN_H+150-H_X*2+H_X*i, 750+H_Y)
+        
+    
+    
     
     # デバッグ要素ゾ
     info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, GAMESTATE={game_state}"
@@ -346,6 +373,8 @@ def draw():
     if Game.queue != []:
         if Game.queue[0] == MY_PID: # 自分のときしか描画しないお！
             for i in Game.capable_sousa_now:
+                # 切るだけのやつは描画しなくて十分でさぁ
+                if i[1] == "kiru": continue
 
                 rect = pygame.draw.rect(screen, COLOR.WHITE, (SCREEN_H + 30, y+1, 300-30*2, 28))
                 clickmap.append((rect, i)) # クリックマップに登録
@@ -361,19 +390,23 @@ def draw():
 def draw_result():
     draw()
 
-    # 結果を表示する（まずは仮表示）
-    info_tx = f"agari_data={Game.agari_data}"
-    info_surf = font.render(info_tx, True, COLOR.YELLOW)
-    screen.blit(info_surf, (20, 50))
-
-
-    # 点数の表示
-    result = tensukeisan.tensukeisan(Game)
+    y = 30 + 1
+    # 役の表示
+    yaku_li = Game.agari_data["yaku"]
+    for yaku in yaku_li:
+        yaku_surf = font_jp.render(yaku, True, COLOR.BLACK)
+        draw_node(yaku_surf, SCREEN_H + 30, y, anchor="topleft")
+        y += 30
+    y+=30
     
+    result = tensukeisan.tensukeisan(Game)
+    # 符・翻の表示
     fuhan = f"{result[1]}符 {result[2]}翻"
     fuhan_surf = font_jp.render(fuhan, True, COLOR.WHITE)
-    draw_node(fuhan_surf, SCREEN_H + 30, 30+1, anchor="topleft")
+    draw_node(fuhan_surf, SCREEN_H + 30, y, anchor="topleft")
 
+    # 点数の表示
+    y+=30
     tensu_li = sorted(result[0])
     if tensu_li.count(0) == 2: # 放銃の場合
         tensu = f"{max(tensu_li)}"
@@ -382,13 +415,14 @@ def draw_result():
     else:
         tensu = f"{-tensu_li[1]}・{-tensu_li[0]}" # 子のツモの場合
     tensu_surf = font_jp.render(tensu, True, COLOR.WHITE)
-    draw_node(tensu_surf, SCREEN_H + 30, 30+30+1, anchor="topleft")
+    draw_node(tensu_surf, SCREEN_H + 30, y, anchor="topleft")
+
+
 
 def draw_title():
     # ステージの描画
     pygame.draw.rect(screen, COLOR.TAKU, (0, 0, SCREEN_H+300, SCREEN_H)) # 卓の外側だけテスト描画
 
-    # 結果を表示する（まずは仮表示）
     info_tx = f"画面クリックでスタート"
     info_surf = font_jp_deka.render(info_tx, True, COLOR.WHITE)
     draw_node(info_surf, C_X+150, C_Y)
@@ -427,7 +461,7 @@ async def start_ai():
         try:
             AI_cmd = await asyncio.wait_for(
             chappy_choice.chappy_choice(situations=situations, what_ai_can_do= what_ai_can_do), # 待機時間が発生する関数
-                timeout=0.5)
+                timeout=1)
         except asyncio.TimeoutError:
             printd("ChatGPT Timeout")
             AI_cmd = random.choice(what_ai_can_do)
