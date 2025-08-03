@@ -8,6 +8,10 @@ from pathlib import Path
 import importlib
 import mentsu_pattern
 import sys
+import ys_haiteimoyue
+import ys_hoteiraoyui
+import ys_tenho
+import ys_tiho
 
 ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
 
@@ -95,6 +99,12 @@ def teyaku_li():
         if yaku_dic[yaku]["teyaku"]: tyk_li.append(yaku)
     return tyk_li
 
+def yakuman():
+    ykm_li = []
+    for yaku in list(yaku_dic):
+        if yaku_dic[yaku]["hansu"] == 13: ykm_li.append(yaku)
+    return ykm_li
+
 # デバッグ用print関数
 def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
     if False:
@@ -102,17 +112,17 @@ def yaku_printd(*args, sep=' ', end='\n', file=sys.stdout, flush=False):
 
 
 # いろんなデータを渡して、役の組み合わせを出力する関数
-def yaku(PlayerInfo, agarihai, sousa=None, mpmode= False): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
+def yaku(players, p_id, agarihai, sousa=None, mpmode= False): # 引数は二つ、ロンでもツモでも槍槓でも対応できるようにPlayerInfoとアガる予定の牌の2つを渡す
     #debug.printd("[yaku fn roaded]")
     #debug.printd(PlayerInfo.dbg(), agarihai, sousa)
     
     yaku_pattern_li = []
     
-    playerid = PlayerInfo.playerid
-    menzen = PlayerInfo.tehai["menzen"]
-    naki = PlayerInfo.tehai["naki"]
-    tumo = PlayerInfo.tehai["tumo"]
-    kawa = PlayerInfo.kawa
+    playerid = players[p_id].playerid
+    menzen = players[p_id].tehai["menzen"]
+    naki = players[p_id].tehai["naki"]
+    tumo = players[p_id].tehai["tumo"]
+    kawa = players[p_id].kawa
     
     menzen_pattern_li = mentsu_pattern.mentsu_pattern(menzen + [agarihai])
     
@@ -147,7 +157,7 @@ def yaku(PlayerInfo, agarihai, sousa=None, mpmode= False): # 引数は二つ、�
         if sousa == "ankan" and tumo == None and yaku_pattern != ["国士無双"]: # 一応国士の場合でもドラの計上などを残す
             continue
 
-        # 特別な役(ドラ、裏ドラ、槍槓、嶺上開花)の判定を行う    
+        # 特別な役(ドラ、裏ドラ、槍槓、嶺上開花、一発)の判定を行う    
         # 嶺上開花
         if sousa in ["ankan", "kakan", "daiminkan"] and tumo != None:
             yaku_pattern.append("嶺上開花")
@@ -166,8 +176,18 @@ def yaku(PlayerInfo, agarihai, sousa=None, mpmode= False): # 引数は二つ、�
         for hai in saladbowl:
             hai_mae = ALL_HAI[ALL_HAI.index(hai)-1] # 一個前の牌を取得
             if hai_mae in dora_omote_valid: yaku_pattern.append("ドラ")
-            if hai_mae in dora_ura_valid and PlayerInfo.ifrichi():   yaku_pattern.append("裏ドラ")
-
+            if hai_mae in dora_ura_valid and players[p_id].ifrichi():   yaku_pattern.append("裏ドラ")
+        
+        
+        #天和地和など特殊な情報が必要な役を判定
+        if ys_haiteimoyue.ys_haiteimoyue(players, p_id, menzen_pattern, agarihai):
+            yaku_pattern.append(ys_haiteimoyue.ys_haiteimoyue(players, p_id, menzen_pattern, agarihai))
+        if ys_hoteiraoyui.ys_hoteiraoyui(players, p_id, menzen_pattern, agarihai):
+            yaku_pattern.append(ys_hoteiraoyui.ys_hoteiraoyui(players, p_id, menzen_pattern, agarihai))
+        if ys_tenho.ys_tenho(players, p_id, menzen_pattern, agarihai):
+            yaku_pattern.append(ys_tenho.ys_tenho(players, p_id, menzen_pattern, agarihai))
+        if ys_tiho.ys_tiho(players, p_id, menzen_pattern, agarihai):
+            yaku_pattern.append(ys_tiho.ys_tiho(players, p_id, menzen_pattern, agarihai))
 
 
         # それぞれの役モジュールをインポートして、成立する役のパターンを取得する
@@ -178,7 +198,7 @@ def yaku(PlayerInfo, agarihai, sousa=None, mpmode= False): # 引数は二つ、�
                 module = importlib.import_module(filename)   # ← ここがポイント
                 fn = getattr(module, filename)
                 try:
-                    result = fn(PlayerInfo= PlayerInfo, menzen_pattern= menzen_pattern, agarihai= agarihai) # 役の名前もしくはFalseが返ってくる
+                    result = fn(PlayerInfo= players[p_id], menzen_pattern= menzen_pattern, agarihai= agarihai) # 役の名前もしくはFalseが返ってくる
                     yaku_printd(f"about: {filename} -> {result}")
                 except Exception as e:
                     result = False
@@ -197,19 +217,19 @@ def yaku(PlayerInfo, agarihai, sousa=None, mpmode= False): # 引数は二つ、�
     return yaku_pattern_li
 
 # PlayerInfoとアガリ牌を渡せば、それらの情報から和了系の役があるかどうかをTrue/Falseで返す
-def agari_capable(PlayerInfo, agarihai, sousa):
+def agari_capable(players, p_id, agarihai, sousa):
     teyaku_li = [name for name, info in yaku_dic.items() if info["teyaku"]]
 
     ag_cp = False
-    yaku_pattern_li = yaku(PlayerInfo, agarihai, sousa)
+    yaku_pattern_li = yaku(players, p_id, agarihai, sousa)
     for yaku_pattern in yaku_pattern_li:
         if any([(y in teyaku_li) for y in yaku_pattern]):
             ag_cp = True
     return ag_cp
 
 # 役の組み合わせからどれが最も役数が高くなるか言ってくれるやつ～（点数処理の関係でベスト時のmenzen_patternも返すような関数にします）
-def best_yaku(PlayerInfo, agarihai, sousa):
-    yaku_pattern_li_and_mentsu_pattern = yaku(PlayerInfo, agarihai, sousa, mpmode=True)
+def best_yaku(players, p_id, agarihai, sousa):
+    yaku_pattern_li_and_mentsu_pattern = yaku(players, agarihai, sousa, mpmode=True)
     
     if len(yaku_pattern_li_and_mentsu_pattern) == 0: return None # そもそも役がなければNoneを返す
     max_yp_mp = None
@@ -224,17 +244,18 @@ def best_yaku(PlayerInfo, agarihai, sousa):
     return max_yp_mp
     # 未作成！
 
+
 if __name__ == "__main__":
     from mahjong import PlayerInfo
 
-    TestPlayer = PlayerInfo(
-        playerid= 0, # ← 0が親
+    TestPlayer = [PlayerInfo(
+        playerid= i, # ← 0が親
         tehai= {"menzen": [],
                 "naki": [],
                 "tumo": None
                 },
         kawa= []
-        )
+        ) for i in [0,1,2,3]]
 
     debug_patterns = [
         #["m1 m1 m1 m2 m3 m4 m5 m6 m7 m8 m9 m9 m9".split(), [], None, "m9"],  
@@ -247,10 +268,11 @@ if __name__ == "__main__":
 
     debug.printd(debug_patterns)
     for i, dp in enumerate(debug_patterns):
-        TestPlayer.tehai["menzen"] = dp[0]
-        TestPlayer.tehai["naki"] = dp[1]
-        TestPlayer.tehai["tumo"] = dp[2]
+        TestPlayer[0].tehai["menzen"] = dp[0]
+        TestPlayer[0].tehai["naki"] = dp[1]
+        TestPlayer[0].tehai["tumo"] = dp[2]
         ag = dp[3]
+        TestPlayer[0].kawa = []
 
         debug.printd(f"[ {i+1} ]","="*100)
-        debug.printd(yaku(PlayerInfo= TestPlayer, agarihai=ag))
+        debug.printd(yaku(players= TestPlayer, p_id=0, agarihai=ag))
