@@ -195,7 +195,7 @@ class Mahjong():
                             capable_sousa_li.append([self.whoturn, "kakan", hai])
 
                 # ツモ和了判定
-                if yaku.agari_capable(Player, Player.tehai["tumo"], self.previous_cmd[1]):
+                if yaku.agari_capable(self.players, self.whoturn, Player.tehai["tumo"], self.previous_cmd[1]):
                     capable_sousa_li.append([self.whoturn, "tumo", Player.tehai["tumo"]])
 
         elif self.phase == Phase.WAIT_OTHERS:
@@ -208,7 +208,7 @@ class Mahjong():
 
                 # ロン判定
                 if not OtherPlayer.iffuriten(): # フリテン判定を行う
-                    if yaku.agari_capable(OtherPlayer, sousa_hai, self.previous_cmd[1]):
+                    if yaku.agari_capable(self.players, i_op, sousa_hai, self.previous_cmd[1]):
                         capable_sousa_li.append([i_op, "ron", sousa_hai])
                 
                 if OtherPlayer.ifrichi(): continue # 立直していればロン判定のみで切り上げる
@@ -314,7 +314,7 @@ class Mahjong():
                         P.ignored.append(sousa_hai)
                 
             elif sousa == "tumo": # ツモ和了
-                by = yaku.best_yaku(Player, Player.tehai["tumo"], self.previous_cmd[1])
+                by = yaku.best_yaku(self.players, p_id, Player.tehai["tumo"], self.previous_cmd[1])
                 self.agari_data = {
                     "whoagari": self.whoturn,
                     "whoagarare": None,
@@ -356,7 +356,7 @@ class Mahjong():
                     [sousa_hai, self.whoturn],])
                 
             elif sousa == "ron": # ロン和了
-                by = yaku.best_yaku(Player, sousa_hai, self.previous_cmd[1])
+                by = yaku.best_yaku(self.players, p_id, sousa_hai, self.previous_cmd[1])
 
                 self.agari_data = {
                     "whoagari": p_id,

@@ -118,7 +118,7 @@ def yaku(players, p_id, agarihai, sousa=None, mpmode= False): # 引数は二つ�
     
     yaku_pattern_li = []
     
-    playerid = players[p_id].playerid
+    playerid = p_id
     menzen = players[p_id].tehai["menzen"]
     naki = players[p_id].tehai["naki"]
     tumo = players[p_id].tehai["tumo"]
