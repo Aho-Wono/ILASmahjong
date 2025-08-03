@@ -35,49 +35,79 @@ def y_ikkitukan_2(PlayerInfo, menzen_pattern, agarihai):
         zi_str = 'p'
     if zi_num[2] >= 9:
         zi_str = 's'
-    #menzen_patternとかで数牌がソートされていることを祈るが、一応されていないようにもつくる
-    ans_ik = [False, False, False] #一気通貫判定
+    ans_ik = [False, False, False] #一気通貫判定, 最初が1,4,7であることを確認
     for menz in menzen_pattern:
         if menz[0][0] != zi_str:
             continue
-        n_ex = 1
-        n_ad = 0
-        for item in menz:
-            if len(item) != 2:
-                break
-            n_ex *= int(item[1])
-            n_ad += int(item[1])
-        n_if = n_ex + n_ad #やってることはパリティビットのノリです　数牌の値の足し算と掛け算の和が(面子として揃う前提で)一意的なことを用いてます
-        #1+2+3+1*2*3=12 実は1+1+5+1*1*5=12だけど面子として存在しないので無視できます
-        if n_if == 12:
+        if len(menz) != 3:
+            continue
+        if menz[0] == menz[1] and menz[1] == menz[2]:
+            continue
+        if menz[0][1] == '1':
             ans_ik[0] = True
-        #4+5+6+4*5*6=135
-        if n_if == 135:
+        if menz[0][1] == '4':
             ans_ik[1] = True
-        #7+8+9+7*8*9=528
-        if n_if == 528:
+        if menz[0][1] == '7':
             ans_ik[2] = True
     for menz in naki:
         if menz[0][0][0] != zi_str:
             continue
-        for item_i in naki:
-            item = item_i[0]
-            n_ex = 1
-            n_ad = 0
-            for item in menz:
-                if len(item) != 2:
-                    break
-                n_ex *= int(item[1])
-                n_ad += int(item[1])
-            n_if = n_ex + n_ad 
-            if n_if == 12:
-                ans_ik[0] = True
-            # 実は2+2+5+6+2*2*5*6=135ですが、上記のように無視できます
-            if n_if == 135:
-                ans_ik[1] = True
-            if n_if == 528:
-                ans_ik[2] = True
-    if ans_ik[0] and ans_ik[1] and ans_ik[2]:
-        return "一気通貫_2"
-    else:
+        if len(menz) != 3:
+            continue
+        if menz[0][0] == menz[1][0] and menz[1][0] == menz[2][0]:
+            continue
+        if menz[0][0][1] == '1':
+            ans_ik[0] = True
+        if menz[0][0][1] == '4':
+            ans_ik[1] = True
+        if menz[0][0][1] == '7':
+            ans_ik[2] = True
+    # これで一気通貫の判定は完了
+    if not (ans_ik[0] and ans_ik[1] and ans_ik[2]):
         return False
+    return "一気通貫_2"
+    #menzen_patternとかで数牌がソートされていることを祈るが、一応されていないようにもつくる
+    #for menz in menzen_pattern:
+    #    if menz[0][0] != zi_str:
+    #        continue
+    #    n_ex = 1
+    #    n_ad = 0
+    #    for item in menz:
+    #        if len(item) != 2:
+    #            break
+    #        n_ex *= int(item[1])
+    #        n_ad += int(item[1])
+    #    n_if = n_ex + n_ad #やってることはパリティビットのノリです　数牌の値の足し算と掛け算の和が(面子として揃う前提で)一意的なことを用いてます
+    #    #1+2+3+1*2*3=12 実は1+1+5+1*1*5=12だけど面子として存在しないので無視できます
+    #    if n_if == 12:
+    #        ans_ik[0] = True
+    #    #4+5+6+4*5*6=135
+    #    if n_if == 135:
+    #        ans_ik[1] = True
+    #    #7+8+9+7*8*9=528
+    #    if n_if == 528:
+    #        ans_ik[2] = True
+    #for menz in naki:
+    #    if menz[0][0][0] != zi_str:
+    #        continue
+    #    for item_i in naki:
+    #        item = item_i[0]
+    #        n_ex = 1
+    #        n_ad = 0
+    #        for item in menz:
+    #            if len(item) != 2:
+    #                break
+    #            n_ex *= int(item[1])
+    #            n_ad += int(item[1])
+    #        n_if = n_ex + n_ad 
+    #        if n_if == 12:
+    #            ans_ik[0] = True
+    #        # 実は2+2+5+6+2*2*5*6=135ですが、上記のように無視できます
+    #        if n_if == 135:
+    #            ans_ik[1] = True
+    #        if n_if == 528:
+    #            ans_ik[2] = True
+    #if ans_ik[0] and ans_ik[1] and ans_ik[2]:
+    #    return "一気通貫_2"
+    #else:
+    #    return False
