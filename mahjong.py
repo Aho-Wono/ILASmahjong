@@ -172,7 +172,8 @@ class Mahjong():
             Player = self.players[self.whoturn] # 対象プレイヤーを指定
             
             # 何切る問題はいずれの状態でも可能
-            mzl = ripai.ripai(Player.menzen_li())
+            if Player.ifrichi(): mzl = [Player.tehai["tumo"]]
+            else: mzl = ripai.ripai(Player.menzen_li())
             for hai in mzl:
                 kiru_cmd = [self.whoturn, "kiru", hai]
                 if kiru_cmd not in capable_sousa_li:

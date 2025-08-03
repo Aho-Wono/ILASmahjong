@@ -58,7 +58,7 @@ def ryanmen(menz_li, agarihai):
             return True
 
 def syanpon(menz_li, agarihai):
-    if menz_li[0] == menz_li[1] and menz_li[1] == menz_li[2]:
+    if menz_li.count(menz_li[0]) == len(menz_li):
         return True
     else:
         return False
