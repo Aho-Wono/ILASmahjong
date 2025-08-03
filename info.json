@@ -3,18 +3,18 @@
     "hon": 0,
     "kancount": 0,
     "dora_omote": [
-        "p3",
-        "p5",
         "nan",
-        "pei",
-        "m5"
+        "s9",
+        "s3",
+        "s6",
+        "p3"
     ],
     "dora_ura": [
-        "s9",
-        "p1",
+        "m2",
+        "p7",
+        "m7",
         "haku",
-        "p8",
-        "pei"
+        "haku"
     ],
     "score": [
         25000,

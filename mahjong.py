@@ -386,7 +386,7 @@ class Mahjong():
 
                 for P in self.players:
                     P.ifippatu = False
-
+                
                 # 鳴かれた牌を半透明にするための処理
                 self.players[self.whoturn].kawa[-1][2] = True
 
