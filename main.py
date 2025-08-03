@@ -405,11 +405,12 @@ def draw_result():
         yaku_li = Game.agari_data["yaku"]
 
         yakuman_li = []
-        # 役満なら限定する
+        yakuman_all_li = yaku.yakuman()
+        # 役満があれば表示役をそれのみに限定する
         for yk in yaku_li:
-            if yk in yaku.yakuman():
+            if yk in yakuman_all_li:
                 yakuman_li.append(yk)
-        if yakuman_li == []:
+        if yakuman_li != []:
             yaku_li = yakuman_li
 
         for yk in yaku_li:
@@ -541,11 +542,26 @@ while running: # ここがtkinterでいうとこのmainloop()
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
                 game_state = STATE_RESET
                 # 点数移動を行う
-                if result != None:
-                    score = info.read()["score"]
-                    for i,t in enumerate(result[0]):
-                        score[i] += t
-                    info.edit("score", score)
+                if result == None:
+                    # 流局時の点数配分
+                    
+                    tempai_li = []
+                    for P in Game.players:
+                        if P.iftempai():
+                            tempai_li.append(True)
+                        else: tempai_li.append(False)
+                    
+                    bappu = {"0":0, "1":1000, "2":1500, "3":1000, "4":0}[str(tempai_li.count(True))]
+                    
+                    result = [[(+bappu if boo else -bappu) for boo in tempai_li],
+                        None, None]
+                    
+
+
+                score = info.read()["score"]
+                for i,t in enumerate(result[0]):
+                    score[i] += t
+                info.edit("score", score)
 
                 printd("STATE_RESULT→STATE_RESET")
             continue

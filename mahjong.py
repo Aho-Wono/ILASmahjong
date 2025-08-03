@@ -72,6 +72,12 @@ class PlayerInfo:
         else:
             return ifagari.what_to_agari(self.tehai["menzen"])
 
+    def iftempai(self):
+        for h in self.ALL_HAI:
+            if ifagari.ifagari(self.tehai["menzen"] + [h]):
+                return True
+        return False
+
 import ifagari
 import info
 import ripai
@@ -390,14 +396,21 @@ class Mahjong():
                 self.queue = self.get_queue()
                 self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
             elif sousa in ["pon", "chi", "daiminkan"]:
+                
+                # 一発取り消し
+                for P in self.players:
+                    P.ifippatu = False
+
+                # 鳴かれた牌を半透明にするための処理
+                self.players[self.whoturn].kawa[-1][2] = True
+
+
                 self.phase = Phase.WAIT_SELF
                 self.queue = [p_id] # ポンとかチーとかした人にアクセス権を移す
                 self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
                 self.whoturn = p_id
 
-                # 一発取り消し
-                for P in self.players:
-                    P.ifippatu = False
+
             else:
                 raise Exception("do_cmd() coudn't find cmd")
 
