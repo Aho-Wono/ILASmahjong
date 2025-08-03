@@ -1,11 +1,14 @@
 import y_pinfu
 import y_menzentumo
 import info
+from mahjong import PlayerInfo
 
-def atama(PlayerInfo, menzen_pattern, agarihai):
-    naki = PlayerInfo.tehai["naki"]
+Player = PlayerInfo()
+
+def atama(menzen_pattern, agarihai):
+    naki = Player.tehai["naki"]
     kyoku = info.read()["kyoku"]
-    player = PlayerInfo.playerid
+    player = Player.playerid
     kazehai = ["ton" , "nan" , "sha" , "pei"]
     yakuhai = ["haku" , "hatu" , "chun"]
     zikaze_keisan = (int(player)-(int(kyoku[1])-1))%4
@@ -25,7 +28,7 @@ def atama(PlayerInfo, menzen_pattern, agarihai):
                     return True
     return False
 
-def kokushi(PlayerInfo, menzen_pattern, agarihai):
+def kokushi(menzen_pattern, agarihai):
     yaochuhai = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
     if menzen_pattern[0] == yaochuhai and menzen_pattern[1][0] in yaochuhai:
         return True
@@ -38,40 +41,40 @@ def haikei(s:str):#2~8のときTrue, それいがいFalse
         return False
     return True
 
-def ryanmen(menz_li, agarihai):
-    if menz_li[1] == agarihai:
+def ryanmen(menz_li, ag_h):
+    if menz_li[1] == ag_h:
         return False
     if menz_li[0] == menz_li[1] and menz_li[1] == menz_li[2]:
         return False
     #あがり牌が大きい時を調べる。
-    if menz_li[2] == agarihai:
-        if agarihai[2] == '3':
+    if menz_li[2] == ag_h:
+        if ag_h[2] == '3':
             return False
         else:
             return True
     else: #小さいときをしらべる
-        if agarihai[2] == '7':
+        if ag_h[2] == '7':
             return False
         else:
             return True
 
-def syanpon(menz_li, agarihai):
+def syanpon(menz_li):
     if menz_li[0] == menz_li[1] and menz_li[1] == menz_li[2]:
         return True
     else:
         return False
 
-def fukeisan(PlayerInfo, menzen_pattern, agarihai):
+def fukeisan(menzen_pattern, agarihai):
     if len(menzen_pattern) == 7:
         return 25
-    if y_pinfu.y_pinfu(PlayerInfo, menzen_pattern, agarihai) and y_menzentumo.y_menzentumo(PlayerInfo, menzen_pattern, agarihai):
+    if y_pinfu.y_pinfu(Player, menzen_pattern, agarihai) and y_menzentumo.y_menzentumo(Player, menzen_pattern, agarihai):
         return 20
-    if kokushi(PlayerInfo, menzen_pattern, agarihai):#国士無双はよくわからんので適当に。
+    if kokushi(Player, menzen_pattern, agarihai):#国士無双はよくわからんので適当に。
         return 20
     hai_count = 20
     for menz in menzen_pattern:
         if len(menz) == 2:#頭確定(激アツ)
-            if atama(PlayerInfo, menzen_pattern, agarihai):
+            if atama(Player, menzen_pattern, agarihai):
                 hai_count += 2
         else:
             if menz[0] == menz[1] and menz[1] == menz[2]: #暗刻確定
@@ -80,7 +83,7 @@ def fukeisan(PlayerInfo, menzen_pattern, agarihai):
                 else:
                     hai_count += 8
     
-    naki = PlayerInfo.tehai["naki"]
+    naki = Player.tehai["naki"]
     for menz in naki:
         if len(menz) == 3: #明刻確定というわけでもない
             if menz[0][0] == menz[1][0] and menz[1][0] == menz[2][0]:
