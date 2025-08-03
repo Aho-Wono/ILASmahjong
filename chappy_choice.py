@@ -1,6 +1,7 @@
 import os
 import random
 from dotenv import load_dotenv
+from debug import printd
 import openai
 
 import asyncio
@@ -50,8 +51,9 @@ async def chappy_choice(situations , what_ai_can_do):
     answer = response.choices[0].message.content
     try:
         selected_action = what_ai_can_do[int(answer)]
+        printd("chappy_ok")
     except:
-        print("chappy_choice error")
+        printd("chappy_choice error")
         selected_action = random.choice(what_ai_can_do)
     return selected_action
 
