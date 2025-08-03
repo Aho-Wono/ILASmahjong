@@ -92,7 +92,7 @@ def fukeisan(PlayerInfo, menzen_pattern, agarihai):
                     hai_count += 2
                 else:
                     hai_count += 4
-        if menz[0][1] == menz[1][1] and menz[1][1] == menz[2][1] and menz[2][1] == menz[3][1]:#あんかん
+        elif menz[0][1] == menz[1][1] and menz[1][1] == menz[2][1] and menz[2][1] == menz[3][1]:#あんかん
             if haikei(menz[0][0]):
                 hai_count += 16
             else:
@@ -107,7 +107,7 @@ def fukeisan(PlayerInfo, menzen_pattern, agarihai):
     for menz in menzen_pattern:
         mati = True
         if agarihai in menz:
-            if len(agarihai) != 2:
+            if len(agarihai) == 2:
                 mati = False
             elif not ryanmen(menz, agarihai) and not syanpon(menz, agarihai):#両面待ちでもシャンポン待ちでもないものがあればよい。
                 mati = False
