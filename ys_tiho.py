@@ -11,6 +11,6 @@ def ys_tiho(players, p_id, menzen_pattern, agarihai):
         if PlayerInfo.ifnaki():
             return False
     for i in range(p_id , (oya_id + kawakakunin)):
-        if players[i].kawa:
+        if players[i % 4].kawa:
             return False
     return "地和"
