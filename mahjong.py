@@ -141,7 +141,9 @@ class Mahjong():
         
         if True: # デバッグ
             self.players[0].tehai["menzen"] = "m1 m9 p1 p9 s1 s9 ton nan sha pei haku hatu chun".split()
-            self.players[0].tehai["menzen"] = "m1 m1 m1 m2 m3 p1 p4 p2 p2 p3 p3  s4 s3".split()
+            self.players[1].tehai["menzen"] = "m1 m1 m1 m2 m3 p1 p4 p2 p2 p3 p3  s4 s3".split()
+            self.players[2].tehai["menzen"] = "s2 s2 s2 s3 s4 s5 s6 p1 p2 p3 m5 m6 m7".split()
+            self.players[3].tehai["menzen"] = "ton ton ton nan nan nan sha sha sha pei pei pei chun".split()
 
 
         # 親に1牌ツモらせる
@@ -336,6 +338,15 @@ class Mahjong():
                     [sousa_hai, p_id],
                     [sousa_hai, self.whoturn],])
                 
+
+                # 一発取り消し
+                for P in self.players:
+                    P.ifippatu = False
+
+                # 鳴かれた牌を半透明にするための処理
+                self.players[self.whoturn].kawa[-1][2] = True
+
+                
             elif sousa == "daiminkan": # カンの場合
                 for i in range(3): Player.kiru(sousa_hai)
                 Player.tehai["naki"].append([
@@ -350,6 +361,15 @@ class Mahjong():
                 
                 info.edit("kancount", info.read()["kancount"] + 1)
 
+
+                # 一発取り消し
+                for P in self.players:
+                    P.ifippatu = False
+
+                # 鳴かれた牌を半透明にするための処理
+                self.players[self.whoturn].kawa[-1][2] = True
+
+
             elif sousa == "chi": # チーの場合
                 sh_mps, sh_n = sousa_hai[0], int(sousa_hai[1])
                 ch_1 = f"{sh_mps}{sh_n+cmd[3]}"
@@ -361,6 +381,15 @@ class Mahjong():
                     [ch_2, p_id],
                     [sousa_hai, self.whoturn],])
                 
+                # 一発取り消し
+
+                for P in self.players:
+                    P.ifippatu = False
+
+                # 鳴かれた牌を半透明にするための処理
+                self.players[self.whoturn].kawa[-1][2] = True
+
+                
             elif sousa == "ron": # ロン和了
                 by = yaku.best_yaku(self.players, p_id, sousa_hai, self.previous_cmd[1])
 
@@ -371,6 +400,14 @@ class Mahjong():
                     "yaku": by[1],
                     "mentu_pattern": by[0],
                     "agarihai": sousa_hai}
+                
+                # 一発取り消し
+                for P in self.players:
+                    P.ifippatu = False
+
+                # 鳴かれた牌を半透明にするための処理
+                self.players[self.whoturn].kawa[-1][2] = True
+
                 
         # フェーズ・キューの更新
         if sousa == "ignore":
@@ -397,12 +434,6 @@ class Mahjong():
                 self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
             elif sousa in ["pon", "chi", "daiminkan"]:
                 
-                # 一発取り消し
-                for P in self.players:
-                    P.ifippatu = False
-
-                # 鳴かれた牌を半透明にするための処理
-                self.players[self.whoturn].kawa[-1][2] = True
 
 
                 self.phase = Phase.WAIT_SELF
