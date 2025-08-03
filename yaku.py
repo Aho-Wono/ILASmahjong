@@ -9,6 +9,8 @@ import importlib
 import mentsu_pattern
 import sys
 
+ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
+
 # PlayerInfoのクラスが渡されたら、info.jsonなどの総合的な情報から成立する役を返す関数yaku(Player)を作ろうと思います
 # それが手役かどうかはmainの中で判定します
 
@@ -162,8 +164,9 @@ def yaku(PlayerInfo, agarihai, sousa=None, mpmode= False): # 引数は二つ、�
                     saladbowl.append(nn[0])
         saladbowl.append(agarihai)
         for hai in saladbowl:
-            if hai in dora_omote_valid: yaku_pattern.append("ドラ")
-            if hai in dora_ura_valid and PlayerInfo.ifrichi():   yaku_pattern.append("裏ドラ")
+            hai_mae = ALL_HAI[ALL_HAI.index(hai)-1] # 一個前の牌を取得
+            if hai_mae in dora_omote_valid: yaku_pattern.append("ドラ")
+            if hai_mae in dora_ura_valid and PlayerInfo.ifrichi():   yaku_pattern.append("裏ドラ")
 
 
 
