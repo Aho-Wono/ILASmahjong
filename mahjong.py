@@ -10,6 +10,7 @@ class Phase(Enum): # ゲームのMAP値を定義
 # プレイヤーの状況を包括するクラスを作成
 class PlayerInfo:
     ALL_HAI = "m1 m2 m3 m4 m5 m6 m7 m8 m9 p1 p2 p3 p4 p5 p6 p7 p8 p9 s1 s2 s3 s4 s5 s6 s7 s8 s9 ton nan sha pei haku hatu chun".split()
+    ifippatu = False
 
     def __init__(self, playerid, tehai, kawa):  # コンストラクタ (初期化メソッド)
         self.playerid = playerid # プレイヤー名 
@@ -300,10 +301,14 @@ class Mahjong():
                 for P in self.players:
                     if P.ifrichi():
                         P.ignored.append(sousa_hai)
+
+                # 一発けし
+                Player.ifippatu = False
             elif sousa == "richi": # 立直
                 Player.kiru(sousa_hai)
                 Player.kawa.append([sousa_hai, True, False])
-                
+                Player.ifippatu = True
+
                 for P in self.players:
                     if P.ifrichi():
                         P.ignored.append(sousa_hai)
@@ -389,6 +394,10 @@ class Mahjong():
                 self.queue = [p_id] # ポンとかチーとかした人にアクセス権を移す
                 self.capable_sousa_now = self.get_capable_sousa_now() # csnの更新
                 self.whoturn = p_id
+
+                # 一発取り消し
+                for P in self.players:
+                    P.ifippatu = False
             else:
                 raise Exception("do_cmd() coudn't find cmd")
 

@@ -11,6 +11,7 @@ import ripai
 import math
 import info
 import tensukeisan
+import yaku
 
 import chappy_choice
 
@@ -402,8 +403,17 @@ def draw_result():
         y = 30 + 1
         # 役の表示
         yaku_li = Game.agari_data["yaku"]
-        for yaku in yaku_li:
-            yaku_surf = font_jp.render(yaku, True, COLOR.BLACK)
+
+        yakuman_li = []
+        # 役満なら限定する
+        for yk in yaku_li:
+            if yk in yaku.yakuman():
+                yakuman_li.append(yk)
+        if yakuman_li == []:
+            yaku_li = yakuman_li
+
+        for yk in yaku_li:
+            yaku_surf = font_jp.render(yk, True, COLOR.BLACK)
             draw_node(yaku_surf, SCREEN_H + 30, y, anchor="topleft")
             y += 30
         y+=30
@@ -514,19 +524,16 @@ while running: # ここがtkinterでいうとこのmainloop()
 
         if game_state == STATE_TITLE: # タイトル
             if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
-                Game = Mahjong()        # 新しい半荘／局を開始
+                Game = Mahjong()        # 新しい半荘／局を開始（初期化）
                 info.edit("score", [25000,25000,25000,25000])
+                info.edit("kyoku", "t1")
+                info.edit("hon", 0)
                 game_state = STATE_PLAY
                 waiting_ai = False
-                
-                # あとあと変える箇所ー 未作成！
+            
                 MY_PID = random.choice([0,1,2,3])
-
-                MY_PID = 1
-
                 AI_PIDS = [0,1,2,3]
                 AI_PIDS.remove(MY_PID)
-
 
             continue        # タイトル中は他イベント無視
 
@@ -562,7 +569,7 @@ while running: # ここがtkinterでいうとこのmainloop()
                     Game.reset_kyoku()
                     printd("STATE_RESET→STATE_PLAY")
             continue
-
+            
 
         # --------- ここから対局中 (STATE_PLAY) ---------
         if game_state == STATE_PLAY:  
