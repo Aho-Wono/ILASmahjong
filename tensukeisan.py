@@ -2,6 +2,7 @@ import info
 from yaku import yaku_dic
 import fukeisan
 from mahjong import Mahjong
+from debug import printd
 
 def yakuhai_count(PlayerInfo, menzen_pattern, agarihai):
     naki = PlayerInfo.tehai["naki"]
@@ -162,6 +163,20 @@ def tensukeisan(Game:Mahjong):
                     tensu_data[i] = ten_aga
                 elif i == make_per:
                     tensu_data[i] = -ten_aga
-    print(han, "翻", fu, "符")
-    print(tensu_data)
+
+    printd(han, "翻", fu, "符")
+    printd(tensu_data, end=" → ")
+
+    # 何本場の処理を追加（ゴリ押し）
+    zero_count = tensu_data.count(0)
+    if zero_count == 0: # ツモ
+        for i, t in enumerate(tensu_data[:]):
+            if t<0:   tensu_data[i] += info.read()["hon"]*100
+            elif t>0: tensu_data[i] += info.read()["hon"]*300
+    else: # ロン
+        for i, t in enumerate(tensu_data[:]):
+            if t<0:   tensu_data[i] += info.read()["hon"]*300
+            elif t>0: tensu_data[i] += info.read()["hon"]*300
+
+    printd(tensu_data)
     return [tensu_data, fu, han]
