@@ -122,7 +122,7 @@ def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False, rotate_all 
         # 背景の描画
     front = image_dic["front"]
     front =  pygame.transform.rotate(front, rotate)
-    if iftrans: front.set_alpha(128)        
+    if iftrans: front.set_alpha(128+32)        
     rect = front.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
     if clm_mode and rect.collidepoint(POS):
         rect.y -= 10   
@@ -131,7 +131,7 @@ def draw_hai(hai, x, y, rotate=0, clm_mode = False, iftrans = False, rotate_all 
     # 牌の描画
     img = image_dic[hai]
     img = pygame.transform.rotate(img, rotate)
-    if iftrans: img.set_alpha(128)
+    if iftrans: img.set_alpha(128+32)
     rect = img.get_rect(**{anchor_by_rot[rotate_all]: (x_converted, y_converted)})
     if clm_mode and rect.collidepoint(POS):
         rect.y -= 10   
@@ -155,14 +155,31 @@ def draw_player(pid):
 
     # 面前牌を描画
     x = FUCHI + H_X*2 + H_G
-    for hai in ripai.ripai(Player.tehai["menzen"]):    
-        draw_hai(hai, x, C_Y+400, clm_mode=clm_mode_menzen, rotate_all=rotate_all)
+    for hai in ripai.ripai(Player.tehai["menzen"]):
+        hhh = "back"
+        if pid == MY_PID:
+            hhh = hai
+        if Game.agari_data != None:
+            if Game.agari_data["whoagari"] == pid:
+                hhh = hai
+        else:
+            if len(Game.YAMA) <= 4:
+                hhh = hai # テンパイ時に牌を見せるやつー
+
+
+        draw_hai(hhh, x, C_Y+400, clm_mode=clm_mode_menzen, rotate_all=rotate_all)
         x += H_X
         
     # ツモ牌を描画
     tumohai = Player.tehai["tumo"]
     if tumohai != None:
-        draw_hai(tumohai, x+H_G, C_Y+400, clm_mode=clm_mode_tumo, rotate_all=rotate_all)
+        hhh = "back"
+        if pid == MY_PID:
+            hhh = tumohai
+        if Game.agari_data != None:
+            if Game.agari_data["whoagari"] == pid:
+                hhh = tumohai
+        draw_hai(hhh, x+H_G, C_Y+400, clm_mode=clm_mode_tumo, rotate_all=rotate_all)
     
     x = SCREEN_H - (FUCHI + 1) # この１はピクセル調整
 
@@ -370,9 +387,9 @@ def draw():
     
     
     # デバッグ要素ゾ
-    info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, GAMESTATE={game_state}"
-    info_surf = font.render(info_tx, True, COLOR.BLACK)
-    screen.blit(info_surf, (20, 20))
+    ##info_tx = f"whoturn={Game.whoturn}, queue={Game.queue},  phase={Game.phase.name}, GAMESTATE={game_state}"
+    #info_surf = font.render(info_tx, True, COLOR.BLACK)
+    #screen.blit(info_surf, (20, 20))
     
     # 可能なコマンドを箇条書きで描画する
     y = 30
