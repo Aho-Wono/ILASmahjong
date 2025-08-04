@@ -84,7 +84,7 @@ font_jp = pygame.font.SysFont("Meiryo", 25)
 #font_jp.set_bold(True)
 font_jp_deka = pygame.font.SysFont("Meiryo", 40)
 
-cmd_font = pygame.font.SysFont(None, 30)
+cmd_font = pygame.font.SysFont("Meiryo",20)
 
 clickmap = []
 
@@ -163,7 +163,7 @@ def draw_player(pid):
             if Game.agari_data["whoagari"] == pid:
                 hhh = hai
         else:
-            if len(Game.YAMA) <= 4 and Player.iftempai():
+            if len(Game.YAMA) <= 4 and Player.iftempai() and Game.phase == Phase.ROUND_END:
                 hhh = hai  # テンパイ時に牌を見せるやつー
 
 
@@ -403,7 +403,23 @@ def draw():
                 clickmap.append((rect, i)) # クリックマップに登録
 
                 #csn_surf = cmd_font.render("  ".join(i[1:]), True, BLACK,)
-                csn_surf = cmd_font.render(f"{i}", True, COLOR.BLACK)
+                # クソダサコマンドを書き換える
+                if i[1] == "chi":
+                    chitype = "OOo OoO oOO".split()[[-2, -1, 1].index(i[3])]            
+                    csn_txt = f"チー {i[2]}({chitype})"
+                elif i[1] == "ignore":
+                    csn_txt = "スルー"
+                else:
+                    csn_txt = {"pon":"ポン",
+                        "daiminkan":"カン",
+                        "kakan": "カン",
+                        "ankan": "カン",
+                        "ron": "ロン",
+                        "richi": "立直",
+                        "tumo": "ツモ"
+                        }[i[1]] + " " + i[2]
+
+                csn_surf = cmd_font.render(csn_txt, True, COLOR.BLACK)
                 
                 rect      = csn_surf.get_rect()   # ① まだ原点 (0,0)
                 rect.center = (SCREEN_H + 150, y+15)
