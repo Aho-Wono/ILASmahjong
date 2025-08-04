@@ -3,6 +3,33 @@ from yaku import yaku_dic
 import fukeisan
 from mahjong import Mahjong
 
+def yakuhai_count(PlayerInfo, menzen_pattern, agarihai):
+    naki = PlayerInfo.tehai["naki"]
+    kyoku = info.read()["kyoku"]
+    player = PlayerInfo.playerid
+    kazehai = ["ton" , "nan" , "sha" , "pei"]
+    yakuhai = ["haku" , "hatu" , "chun"]
+    zikaze_keisan = (int(player)-(int(kyoku[1])-1))%4
+    if kyoku[0] == "t":
+        yakuhai.append(kazehai[0])
+    elif kyoku[0] == "n":
+        yakuhai.append(kazehai[1])
+    elif kyoku[0] == "s":
+        yakuhai.append(kazehai[2])
+    elif kyoku[0] == "p":
+        yakuhai.append(kazehai[3])
+    yakuhai.append(kazehai[zikaze_keisan])
+    count = 0
+    for menz in menzen_pattern:
+        for ya in yakuhai:
+            if menz[0] == ya:
+                count += 1
+    for menz in naki:
+        for ya in yakuhai:
+            if menz[0][0] == ya:
+                count += 1
+    return count
+
 def tensukeisan(Game:Mahjong):
     agari_data = Game.agari_data
     # info.getoya() で親確認できる
@@ -22,7 +49,10 @@ def tensukeisan(Game:Mahjong):
     fu = fukeisan.fukeisan(Game.players[aga_per],mentsu_pattern, agarihai)
     han = 0
     for yaku in yaku_list:
+        if yaku == "役牌":
+            continue
         han += yaku_dic[yaku]["hansu"]
+    han += yakuhai_count(Game.players[aga_per], mentsu_pattern, agarihai)
     tensu_data = [0, 0, 0, 0] #各々のプレイヤーの得失をまとめる
     if make_per == None: #ツモのとき
         if aga_per == info.getoya(): #親があがったとき
