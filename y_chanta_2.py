@@ -1,9 +1,9 @@
 import y_honroto
 import y_junchan_3
 def y_chanta_2(PlayerInfo, menzen_pattern, agarihai):
-    if y_honroto.y_honroto(PlayerInfo, menzen_pattern, agarihai) or y_junchan_3.y_junchan_3(PlayerInfo, menzen_pattern, agarihai):
-        return False
     if PlayerInfo.ifnaki():
+        return False
+    if y_honroto.y_honroto(PlayerInfo, menzen_pattern, agarihai) or y_junchan_2.y_junchan_2(PlayerInfo, menzen_pattern, agarihai) or y_junchan_1.y_junchan_1(PlayerInfo, menzen_pattern, agarihai):
         return False
     if len(menzen_pattern) == 7:
         return False
@@ -11,22 +11,19 @@ def y_chanta_2(PlayerInfo, menzen_pattern, agarihai):
     for menz in menzen_pattern:
         flag = True
         for item in menz:
-            try:
-                if (len(item) == 2):
-                    i = int(item[1])
-                    if i == 1 or i == 9:
-                        flag = False
-                else:
+            if len(item) == 2:
+                i = int(item[1])
+                if i == 1 or i == 9:
                     flag = False
-            except Exception as e:
-                print(e)
+            else:
+                flag = False
         if flag:
             return False
     for naki_i in naki:
         flag = True
         for item in naki_i:
             if(len(item[0]) == 2):
-                i = int(item[1])
+                i = int(item[0][1])
                 if i == 1 or i == 9:
                     flag = False
             else: 
