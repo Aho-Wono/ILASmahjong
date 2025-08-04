@@ -613,6 +613,25 @@ while running: # ここがtkinterでいうとこのmainloop()
             elif ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1: # クリックされたら
                 cmd = click_to_cmd(ev.pos)
 
+            elif ev.type == pygame.KEYDOWN: # ショートカットキー
+                keys = pygame.key.get_pressed()  # 現在押されているキーの一覧
+                # Ctrl + R
+                if keys[pygame.K_LCTRL] or keys[pygame.K_RCTRL]:  # 左右どちらのCtrlでも可
+                    if ev.key == pygame.K_r: # 自分が14牌所持している時にリセマラできるようにする
+                        # ツモ牌以外（面前牌）をリセットする
+                        printd("Ctrl+R: リセマラ処理")
+                        if Game.whoturn == MY_PID:
+                            ME = Game.players[MY_PID]
+                            Game.YAMA.extend(ME.tehai["menzen"])
+                            # 再びYAMAからとってくる
+                            onew  = []
+                            for i in range(len(ME.tehai["menzen"])):
+                                hai = random.choice(Game.YAMA)
+                                Game.YAMA.remove(hai)                            
+                                onew.append(hai)
+                            ME.tehai["menzen"] = onew
+
+
     # イベント取得外の処理
     if game_state == STATE_PLAY:
         # AIを起こす
