@@ -94,7 +94,7 @@ class Mahjong():
 
     def reset_kyoku(self):
         # 開局時の初期化を行う
-        printd(f"START {info.read()["kyoku"].upper()}")
+        printd(f"START {info.read()['kyoku'].upper()}")
 
         # 4人分のクラスオブジェクトを作成（playersというリストにData_A, Data_B, Data_C, Data_Dが入ってるイメージ）
         # 基本的に4人のクラスはこのリストの中のオブジェクトとしてまとめて扱う（例えばData_A=…のようにして4つの管理はしないという意味）
