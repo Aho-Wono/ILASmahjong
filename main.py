@@ -163,8 +163,8 @@ def draw_player(pid):
             if Game.agari_data["whoagari"] == pid:
                 hhh = hai
         else:
-            if len(Game.YAMA) <= 4:
-                hhh = hai # テンパイ時に牌を見せるやつー
+            if len(Game.YAMA) <= 4 and Player.iftempai():
+                hhh = hai  # テンパイ時に牌を見せるやつー
 
 
         draw_hai(hhh, x, C_Y+400, clm_mode=clm_mode_menzen, rotate_all=rotate_all)
